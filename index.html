@@ -71,7 +71,7 @@
                 <p class="mb-3">⚡ Tienes <strong class="text-yellow-400">20 segundos reales</strong> de caída por palabra para encontrar su equivalente en inglés del banco de respuestas.</p>
                 <p class="mb-3">🎯 <strong class="text-emerald-400">Sistema de Puntuación:</strong> Recibes <strong class="text-emerald-400">5 puntos</strong> por verbos de 2 palabras y <strong class="text-emerald-400">10 puntos</strong> por los de 3 palabras. Si usas ayuda, recibirás la mitad.</p>
                 <p class="mb-3">⭐ <strong class="text-cyan-400">Metas de Nivel:</strong> Nivel 1: <strong class="text-amber-400">50 pts</strong> | Nivel 2: <strong class="text-amber-400">100 pts</strong> | Nivel 3: <strong class="text-amber-400">150 pts</strong> | Nivel 4 (Final): <strong class="text-amber-400">200 pts</strong>.</p>
-                <p>⚠️ <strong class="text-rose-400">Ayudas Limitadas:</strong> Solo tienes <strong class="text-rose-400">3 ayudas SOS</strong> en total. ¡Úsalas con sabiduría!</p>
+                <p>⚠️ <strong class="text-rose-400">Ayudas Limitadas:</strong> Solo tienes <strong class="text-rose-400">3 ayudas SOS</strong> por nivel. ¡Se recargan al subir de nivel!</p>
             </div>
 
             <button onclick="startGame()" class="px-8 py-4 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-fun btn-gold-pulse">
@@ -330,14 +330,16 @@
         let isAudioEnabled = true;
         let gameLoopActive = false;
         let isHelpUsed = false; // Registra si se ha solicitado ayuda en el bloque actual
-        let helpUsesRemaining = 3; // Límite estricto de ayudas por partida
+        let helpUsesRemaining = 3; // Límite estricto de ayudas por nivel (se recarga al cambiar nivel)
         let currentLevel = 1;
         const levelGoals = [50, 100, 150, 200];
+
+        // Lista de Phrasal Verbs ya descubiertas en este nivel (se grisan y desactivan)
+        let solvedWordIds = new Set();
 
         // Propiedades de la caída de bloques
         let currentBlockY = 0; 
         let activeBlockData = null;
-        const baseDuration = 20000; // Ajustado a 20 segundos reales de tiempo de descenso base
         let animationFrameId = null;
         let lastTimestamp = 0;
 
@@ -365,6 +367,14 @@
             } catch (e) {
                 console.warn("No se pudo iniciar el sintetizador de audio", e);
             }
+        }
+
+        // Retorna el tiempo base de descenso dependiendo del nivel actual del juego
+        function getBaseDurationForLevel(level) {
+            if (level === 1) return 20000; // Nivel 1: 20 segundos
+            if (level === 2) return 18000; // Nivel 2: 18 segundos
+            if (level === 3) return 15000; // Nivel 3: 15 segundos
+            return 12000;                  // Nivel 4: 12 segundos
         }
 
         function playSound(type) {
@@ -427,7 +437,6 @@
             });
         }
 
-        // Colores según prefijos gramaticales
         function getThemeClass(english) {
             const upper = english.toUpperCase();
             if (upper.startsWith("BACK")) {
@@ -475,6 +484,22 @@
             }
         }
 
+        // Actualiza el estilo del listado para pintar de gris oscuro y deshabilitar las ya descubiertas
+        function updateWordsDeckVisuals() {
+            PHRASAL_VERBS_B.forEach(item => {
+                const btn = document.getElementById(`verb-btn-${item.id}`);
+                if (!btn) return;
+                
+                if (solvedWordIds.has(item.id)) {
+                    // Diseño iOS Gris Oscuro Desactivado para palabras encontradas
+                    btn.className = "p-3 rounded-xl text-center text-xs sm:text-sm font-bold tracking-wide shadow-inner border-2 transform transition-all duration-150 cursor-not-allowed font-fun flex flex-col justify-center items-center h-16 select-none bg-slate-800 text-slate-500 border-slate-950 opacity-30 pointer-events-none";
+                } else {
+                    // Restablecer a su clase y color correspondientes
+                    btn.className = `p-3 rounded-xl text-center text-xs sm:text-sm font-bold tracking-wide shadow-md border-2 transform active:scale-95 transition-all duration-150 cursor-pointer font-fun flex flex-col justify-center items-center h-16 select-none ${getThemeClass(item.english)}`;
+                }
+            });
+        }
+
         function startGame() {
             Tone.start();
             document.getElementById("splash-screen").classList.add("hidden");
@@ -490,9 +515,12 @@
             isHelpUsed = false;
             helpUsesRemaining = 3;
             currentLevel = 1;
+            solvedWordIds.clear();
             
             updateHUD();
+            renderWordsDeck();
             renderStackedBlocks();
+            updateWordsDeckVisuals();
             
             document.getElementById("gameover-screen").classList.add("hidden");
             document.getElementById("levelup-screen").classList.add("hidden");
@@ -508,9 +536,18 @@
             isHelpUsed = false;
             document.querySelectorAll(".help-active").forEach(btn => btn.classList.remove("help-active"));
 
-            // Seleccionar palabra aleatoria
-            const randIndex = Math.floor(Math.random() * PHRASAL_VERBS_B.length);
-            activeBlockData = PHRASAL_VERBS_B[randIndex];
+            // Filtrar las phrasal verbs que NO se han solucionado aún para evitar repetir en este nivel
+            let availableWords = PHRASAL_VERBS_B.filter(word => !solvedWordIds.has(word.id));
+            if (availableWords.length === 0) {
+                // Si por algún motivo completamos todas las palabras, reiniciamos el mazo
+                solvedWordIds.clear();
+                updateWordsDeckVisuals();
+                availableWords = PHRASAL_VERBS_B;
+            }
+
+            // Seleccionar palabra aleatoria del pool restante
+            const randIndex = Math.floor(Math.random() * availableWords.length);
+            activeBlockData = availableWords[randIndex];
 
             const blockEl = document.getElementById("falling-block");
             const labelEl = document.getElementById("falling-label");
@@ -549,11 +586,10 @@
             const correctBtn = document.getElementById(`verb-btn-${activeBlockData.id}`);
             if (correctBtn) {
                 correctBtn.classList.add("help-active");
-                // Scroll asistido por si el botón queda fuera del rango de vista en móvil
                 correctBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
 
-            // Segunda penalización: Aumentar la velocidad en un 0.05% (+0.0005 al multiplicador)
+            // Segunda penalización: Aumentar la velocidad en un 0.05%
             speedMultiplier += 0.0005;
 
             // Sonido mágico de sugerencia usando Tone.js
@@ -585,8 +621,11 @@
             const stackHeight = stackedBlocks.length * 40; 
             const limitY = Math.max(50, arenaHeight - blockHeight - bottomMargin - stackHeight);
 
-            // La velocidad base depende exactamente del límite dinámico (limitY)
-            const step = (limitY / (baseDuration / speedMultiplier)) * elapsed;
+            // Duración base del descenso dependiendo del nivel actual (20s, 18s, 15s o 12s)
+            const activeBaseDuration = getBaseDurationForLevel(currentLevel);
+
+            // La velocidad base depende del límite dinámico y el tiempo del nivel actual
+            const step = (limitY / (activeBaseDuration / speedMultiplier)) * elapsed;
             currentBlockY += step;
 
             // Calcular porcentaje real en función del límite dinámico
@@ -621,6 +660,9 @@
         function handleAnswerAttempt(selectedId) {
             if (!gameLoopActive || !activeBlockData) return;
 
+            // No permitir interaccionar con una palabra ya solucionada
+            if (solvedWordIds.has(selectedId)) return;
+
             if (selectedId === activeBlockData.id) {
                 handleCorrectMatch();
             } else {
@@ -643,6 +685,10 @@
 
             currentStreak++;
             if (currentStreak > maxStreak) maxStreak = currentStreak;
+
+            // Registrar palabra como solucionada en este nivel
+            solvedWordIds.add(activeBlockData.id);
+            updateWordsDeckVisuals();
 
             const blockEl = document.getElementById("falling-block");
             blockEl.classList.add("scale-110", "bg-emerald-500", "border-emerald-300");
@@ -769,17 +815,43 @@
             bubble.classList.add("scale-0");
             kingSvg.style.transform = "scale(1)";
 
+            // Frases aleatorias con consejos integrados para alternar en la burbuja
+            const happyPhrases = [
+                "¡Eres genial! ⭐",
+                "¡Todo despejado! ☀️",
+                "¡Buen trabajo! 👏",
+                "¡Sigue así! 🐾"
+            ];
+
+            const warningPhrases = [
+                "¡Guau, cuidado! 📦",
+                "¡Busca el color y luego la frase! 🎨",
+                "¡El color azul agrupa los BACK-! 💙",
+                "¡El verde son los BE- (A-I)! 💚",
+                "¡Ayúdame! 👑"
+            ];
+
+            const panicPhrases = [
+                "¡SÁLVAME! 👑🐾",
+                "¡Esto va muy rápido! ⚡",
+                "¡Usa el botón de ayuda SOS! 💡",
+                "¡No dejes que toquen el tope! 💣"
+            ];
+
             if (count === 0) {
                 happyFace.classList.remove("hidden");
+                bubble.innerText = happyPhrases[Math.floor(Math.random() * happyPhrases.length)];
+                bubble.classList.remove("scale-0");
+                bubble.classList.add("scale-100");
             } else if (count <= 3) {
                 scaredFace.classList.remove("hidden");
-                bubble.innerText = "¡Guau, cuidado! 📦";
+                bubble.innerText = warningPhrases[Math.floor(Math.random() * warningPhrases.length)];
                 bubble.classList.remove("scale-0");
                 bubble.classList.add("scale-100");
                 kingSvg.style.transform = "scale(1.05) translateY(-2px)";
             } else if (count < MAX_STACK_SIZE) {
                 panicFace.classList.remove("hidden");
-                bubble.innerText = "¡SÁLVAME! 👑🐾";
+                bubble.innerText = panicPhrases[Math.floor(Math.random() * panicPhrases.length)];
                 bubble.classList.remove("scale-0");
                 bubble.classList.add("scale-100");
                 kingSvg.style.transform = "scale(1.15) translateY(-5px) rotate(2deg)";
@@ -824,7 +896,6 @@
             document.getElementById("score-text").innerText = `${score} pts`;
             document.getElementById("level-text").innerText = `Nivel ${currentLevel} (Meta: ${levelGoals[currentLevel - 1]} pts)`;
             
-            // Cambiado a toFixed(2) para reflejar con precisión los incrementos de 0.05%
             const speedPercentage = ((speedMultiplier - 1.0) * 100).toFixed(2);
             document.getElementById("speed-text").innerText = `+${parseFloat(speedPercentage)}%`;
             document.getElementById("streak-text").innerText = `${currentStreak} 🔥`;
@@ -848,16 +919,24 @@
             cancelAnimationFrame(animationFrameId);
             playSound("success");
 
-            // Configurar mensaje del popup iOS
+            // Configurar modal de subida de nivel
             document.getElementById("levelup-title").innerText = `¡NIVEL ${currentLevel} COMPLETADO! 🎉`;
-            document.getElementById("levelup-message").innerText = `¡Espectacular! Has alcanzado ${score} puntos superando la meta de ${levelGoals[currentLevel - 1]} pts. ¿Deseas continuar hacia el Nivel ${currentLevel + 1}?`;
+            document.getElementById("levelup-message").innerText = `¡Espectacular! Has alcanzado ${score} puntos. Al avanzar al Nivel ${currentLevel + 1}, se recargarán tus 3 ayudas SOS pero la velocidad base del juego aumentará. ¿Deseas continuar?`;
             document.getElementById("levelup-screen").classList.remove("hidden");
         }
 
         function continueToNextLevel() {
             document.getElementById("levelup-screen").classList.add("hidden");
             currentLevel++;
+            
+            // Recompensa y balance: Reiniciar ayudas en cada nivel
+            helpUsesRemaining = 3;
+            // Limpiar palabras solucionadas para refrescar el mazo en el nuevo nivel de velocidad
+            solvedWordIds.clear();
+            
+            updateWordsDeckVisuals();
             updateHUD();
+            
             gameLoopActive = true;
             spawnNewBlock();
         }
@@ -892,10 +971,10 @@
             const emojiEl = document.getElementById("gameover-emoji");
 
             if (isVictory) {
-                emojiEl.innerText = "👑🐕🎉";
-                titleEl.innerText = "¡VICTORIA REAL ABSOLUTA!";
+                emojiEl.innerText = "👑🐕🎖️";
+                titleEl.innerText = "¡VICTORIA ABSOLUTA!";
                 titleEl.className = "text-4xl font-bold font-fun text-emerald-400 mb-2 animate-bounce";
-                msgEl.innerText = `¡Increíble! Lograste completar los 4 Niveles salvando por completo al Rey Theo con ${score} puntos. ¡Eres todo un maestro de los Phrasal Verbs de la Sección B!`;
+                msgEl.innerHTML = `<strong class="text-xl text-yellow-300 block mb-3">WOW, ERES LO MÁXIMO.</strong> El Rey Theo te condecora por haber llegado al TOP de los Phrasal Verbs que comienzan con B. ¡Sigue practicando!`;
             } else {
                 emojiEl.innerText = "😢🐕";
                 titleEl.innerText = "¡EL REY FUE ATRAPADO!";
