@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salva al Rey Theo: Phrasal Verbs (Sección B)</title>
+    <!-- Tailwind CSS para el estilizado moderno e interactivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter para legibilidad premium y Fredoka para el toque divertido y arcade -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tone.js para efectos de sonido e interactividad de audio sintetizado -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+        }
+        .font-fun {
+            font-family: 'Fredoka', sans-serif;
+        }
+        /* Animaciones divertidas */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(1deg); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes pulse-gold {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(251, 191, 36, 0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(251, 191, 36, 0.9); }
+        }
+        .btn-gold-pulse {
+            animation: pulse-gold 2s infinite;
+        }
+        /* Esconder barras de desplazamiento */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-slate-100 overflow-x-hidden">
+
+    <div id="game-container" class="w-full max-w-6xl bg-slate-900/90 border-4 border-amber-400 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
+        
+        <!-- Pantalla de Inicio / Splash Screen -->
+        <div id="splash-screen" class="absolute inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center p-6 text-center">
+            <!-- Corona decorativa -->
+            <div class="text-7xl mb-4 animate-bounce">👑🐕</div>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-300 font-fun tracking-wide leading-tight mb-2">
+                SALVA AL REY THEO
+            </h1>
+            <h2 class="text-xl text-indigo-300 font-semibold mb-6">El Rey Yorkie - Phrasal Verbs B</h2>
+            
+            <div class="max-w-md bg-indigo-950/80 border border-indigo-500/30 rounded-2xl p-5 mb-8 text-slate-200 text-sm sm:text-base leading-relaxed shadow-inner">
+                <p class="mb-3">👑 <strong class="text-amber-400">¿Cuál es tu misión?</strong> El adorable Rey THEO (un perrito Yorkie) está atrapado en la torre. Caerán bloques con conceptos en español de forma continua.</p>
+                <p class="mb-3">⚡ Tienes <strong class="text-yellow-400">13 segundos reales</strong> de caída por palabra para encontrar su equivalente en inglés del banco de respuestas.</p>
+                <p class="mb-3">🎯 <strong class="text-emerald-400">Match correcto:</strong> El bloque explota, se elimina una fila de peligro y el perrito respira tranquilo.</p>
+                <p>⚠️ <strong class="text-rose-400">Error:</strong> Si fallas, la velocidad del juego aumentará un <strong class="text-rose-400">1%</strong> y el bloque actual acelerará inmediatamente.</p>
+            </div>
+
+            <button onclick="startGame()" class="px-8 py-4 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-fun btn-gold-pulse">
+                ¡EMPEZAR A JUGAR!
+            </button>
+        </div>
+
+        <!-- Columna de la Torre (Rediseñada para ser mucho más alta y estilizada: efecto 500x100) -->
+        <div class="w-full md:w-5/12 bg-slate-950 p-4 border-b-4 md:border-b-0 md:border-r-4 border-slate-800 flex flex-col justify-between relative min-h-[600px] md:min-h-[780px]">
+            
+            <!-- Marcadores y estadísticas -->
+            <div class="bg-indigo-950/60 p-3 rounded-2xl border border-indigo-500/20 mb-3 flex justify-between items-center text-sm font-fun shadow-md">
+                <div>
+                    <span class="text-indigo-300 block text-xs uppercase tracking-wider">Marcador</span>
+                    <span id="score-text" class="text-2xl text-amber-400 font-bold">0 pts</span>
+                </div>
+                <div class="text-center">
+                    <span class="text-indigo-300 block text-xs uppercase tracking-wider">Aceleración</span>
+                    <span id="speed-text" class="text-lg text-rose-400 font-bold">+0%</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-indigo-300 block text-xs uppercase tracking-wider">Racha Máx</span>
+                    <span id="streak-text" class="text-2xl text-emerald-400 font-bold">0 🔥</span>
+                </div>
+            </div>
+
+            <!-- Torreón del Rey (Área de Caída Alta y Estilizada) -->
+            <div id="tower-arena" class="relative flex-grow bg-gradient-to-b from-indigo-950/40 via-purple-950/30 to-slate-950 rounded-2xl border-2 border-indigo-500/30 overflow-hidden shadow-inner flex flex-col justify-end min-h-[480px] md:min-h-[620px]">
+                
+                <!-- Fondo simulando un calabozo royal -->
+                <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#5a5fcf_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+                <!-- Bloque Cayendo (Dinámico) -->
+                <div id="falling-block" class="absolute left-4 right-4 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 rounded-xl p-3 shadow-lg font-bold flex flex-col items-center justify-center border-2 border-white transition-all duration-75 select-none z-30" style="top: 0px; display: none;">
+                    <div class="text-xs uppercase tracking-widest text-amber-950 font-semibold mb-1">Traduce esta palabra</div>
+                    <div id="falling-concept" class="text-lg sm:text-xl font-fun text-center tracking-wide leading-tight">Concepto</div>
+                    <!-- Indicador visual de tiempo -->
+                    <div class="w-full bg-black/20 h-1.5 rounded-full mt-2 overflow-hidden">
+                        <div id="block-timer-bar" class="bg-white h-full transition-all duration-100" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Pila de bloques acumulados al fondo -->
+                <div id="block-stack-container" class="w-full flex flex-col justify-end p-2 gap-1.5 z-10">
+                    <!-- Los bloques apilados se insertarán dinámicamente aquí -->
+                </div>
+
+                <!-- El Rey THEO al final de la torre (Perrito Yorkshire con corona) -->
+                <div class="relative w-full h-28 flex flex-col items-center justify-end z-20 pointer-events-none pb-2 bg-gradient-to-t from-indigo-950/80 to-transparent">
+                    <!-- Burbuja de auxilio -->
+                    <div id="king-bubble" class="absolute bottom-20 bg-white text-slate-900 font-bold font-fun px-3 py-1 rounded-full text-xs shadow-lg border border-slate-300 transition-all duration-300 scale-0 origin-bottom">
+                        ¡Guau! ¡Ayúdame! 👑
+                    </div>
+                    
+                    <!-- SVG Animado del Perrito Yorkie Rey -->
+                    <svg id="king-svg" class="w-24 h-24 drop-shadow-lg transition-transform duration-300" viewBox="0 0 100 100">
+                        <!-- Cuerpo (Pelaje azul acero / gris oscuro de Yorkie) -->
+                        <path d="M 28,95 C 28,70 35,60 50,60 C 65,60 72,70 72,95 Z" fill="#334155" stroke="#1e293b" stroke-width="2" />
+                        <!-- Pecho (Pelaje de fuego/dorado) -->
+                        <path d="M 40,65 Q 50,60 60,65 L 55,95 L 45,95 Z" fill="#eab308" />
+                        
+                        <!-- Orejas erectas típicas de Yorkshire Terrier -->
+                        <!-- Oreja Izquierda -->
+                        <path d="M 28,45 L 18,15 Q 32,25 36,40 Z" fill="#ca8a04" stroke="#1e293b" stroke-width="1.5" />
+                        <path d="M 26,40 L 21,20 Q 30,28 32,38 Z" fill="#fda4af" opacity="0.6" /> <!-- Interior oreja rosa -->
+                        
+                        <!-- Oreja Derecha -->
+                        <path d="M 72,45 L 82,15 Q 68,25 64,40 Z" fill="#ca8a04" stroke="#1e293b" stroke-width="1.5" />
+                        <path d="M 74,40 L 79,20 Q 70,28 68,38 Z" fill="#fda4af" opacity="0.6" />
+
+                        <!-- Cabeza redondita con pelaje doradito -->
+                        <circle cx="50" cy="48" r="22" fill="#ca8a04" stroke="#1e293b" stroke-width="2" />
+                        <!-- Mechones laterales de pelo Yorkie -->
+                        <path d="M 25,48 Q 15,55 25,62" fill="none" stroke="#ca8a04" stroke-width="4" stroke-linecap="round" />
+                        <path d="M 75,48 Q 85,55 75,62" fill="none" stroke="#ca8a04" stroke-width="4" stroke-linecap="round" />
+                        
+                        <!-- Hocico (Muzzle) doradito claro -->
+                        <ellipse cx="50" cy="54" rx="10" ry="7" fill="#fef08a" stroke="#ca8a04" stroke-width="1" />
+                        <!-- Trufa / Nariz negra brillante de perrito -->
+                        <path d="M 46,50 Q 50,47 54,50 Q 50,55 46,50" fill="#0f172a" />
+
+                        <!-- Rostro por defecto (Feliz - Perrito sonriente con lengüita) -->
+                        <g id="king-face-happy">
+                            <!-- Ojos brillantes -->
+                            <circle cx="41" cy="42" r="3" fill="#0f172a" />
+                            <circle cx="40" cy="41" r="1" fill="#ffffff" />
+                            <circle cx="59" cy="42" r="3" fill="#0f172a" />
+                            <circle cx="58" cy="41" r="1" fill="#ffffff" />
+                            <!-- Sonrisa con lengüita rosa -->
+                            <path d="M 46,54 Q 50,59 54,54" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
+                            <path d="M 48,56 Q 50,62 52,56 Z" fill="#f43f5e" />
+                        </g>
+
+                        <!-- Rostro Asustado (Peligro medio) -->
+                        <g id="king-face-scared" class="hidden">
+                            <!-- Ojos preocupados -->
+                            <ellipse cx="41" cy="42" rx="2.5" ry="3.5" fill="#0f172a" />
+                            <ellipse cx="59" cy="42" rx="2.5" ry="3.5" fill="#0f172a" />
+                            <!-- Cejas preocupadas -->
+                            <path d="M 36,36 Q 41,38 45,35" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
+                            <path d="M 64,36 Q 59,38 55,35" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
+                            <!-- Boca preocupada pequeña -->
+                            <circle cx="50" cy="58" r="2.5" fill="#0f172a" />
+                            <!-- Gota de sudor -->
+                            <path d="M 32,45 C 30,48 30,52 32,52 C 34,52 34,48 32,45 Z" fill="#38bdf8" />
+                        </g>
+
+                        <!-- Rostro Aterrorizado (Peligro crítico) -->
+                        <g id="king-face-panic" class="hidden">
+                            <!-- Ojos espantados con pupilas diminutas -->
+                            <circle cx="41" cy="42" r="4.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5" />
+                            <circle cx="41" cy="42" r="1.5" fill="#0f172a" />
+                            <circle cx="59" cy="42" r="4.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5" />
+                            <circle cx="59" cy="42" r="1.5" fill="#0f172a" />
+                            <!-- Boca muy abierta asustada -->
+                            <ellipse cx="50" cy="60" rx="4" ry="3.5" fill="#ef4444" stroke="#0f172a" stroke-width="1.5" />
+                        </g>
+
+                        <!-- Rostro Derrotado (Game Over) -->
+                        <g id="king-face-defeat" class="hidden">
+                            <!-- Equis en los ojos -->
+                            <path d="M 38,39 L 44,45 M 44,39 L 38,45" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
+                            <path d="M 56,39 L 62,45 M 62,39 L 56,45" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
+                            <!-- Boca triste caída -->
+                            <path d="M 46,58 Q 50,54 54,58" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
+                        </g>
+
+                        <!-- Corona de Oro del Perrito (De ladito de manera coqueta) -->
+                        <g id="king-crown">
+                            <path d="M 38,26 L 36,10 L 45,18 L 50,7 L 55,18 L 64,10 L 62,26 Z" fill="#fbbf24" stroke="#d97706" stroke-width="2" />
+                            <!-- Joyas de la corona de perrito -->
+                            <circle cx="50" cy="7" r="2" fill="#ef4444" />
+                            <circle cx="36" cy="10" r="1.5" fill="#3b82f6" />
+                            <circle cx="64" cy="10" r="1.5" fill="#3b82f6" />
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna del Banco de Palabras -->
+        <div class="w-full md:w-7/12 p-4 sm:p-6 flex flex-col justify-between bg-slate-900">
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                    <h3 class="text-xl font-bold font-fun text-yellow-400 flex items-center gap-2">
+                        <span>📚</span> Banco de Phrasal Verbs (B)
+                    </h3>
+                    <span class="text-xs bg-slate-800 text-indigo-300 font-semibold px-2 py-1 rounded-lg border border-slate-700">
+                        35 Términos únicos
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 mb-4">
+                    Selecciona rápidamente la opción en inglés correspondiente al concepto en español que está cayendo en la torre. ¡La velocidad mental es clave!
+                </p>
+
+                <!-- Categorías visuales por colores para facilitar el escaneo del usuario -->
+                <div class="flex gap-2 flex-wrap mb-4 text-[10px] font-semibold">
+                    <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">Prefijo BACK-</span>
+                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Prefijo BE- (A-I)</span>
+                    <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Prefijo BE- (O-U)</span>
+                    <span class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-500/30">BEND / BLOW / BREAK</span>
+                </div>
+
+                <!-- Grilla de 35 Botones (Todos en la misma pantalla sin compartimentar) -->
+                <div id="words-deck" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[460px] md:max-h-[580px] overflow-y-auto pr-1 no-scrollbar p-1 bg-slate-950/40 rounded-2xl border border-slate-800 shadow-inner">
+                    <!-- Los 35 botones se generarán dinámicamente mediante JS -->
+                </div>
+            </div>
+
+            <!-- Botones de Control de Sistema -->
+            <div class="flex gap-3 mt-4 border-t border-slate-800 pt-4">
+                <button onclick="resetGame()" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition duration-150 font-fun border border-slate-700 flex items-center justify-center gap-2">
+                    🔄 Reiniciar
+                </button>
+                <button onclick="toggleAudio()" id="audio-toggle" class="px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition duration-150 border border-slate-700 flex items-center justify-center">
+                    🔊 Sonido
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Fin de Juego (Game Over / Éxito) -->
+        <div id="gameover-screen" class="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center hidden">
+            <!-- Emoticono Triste/Feliz -->
+            <div id="gameover-emoji" class="text-7xl mb-4 animate-bounce">😢</div>
+            <h2 id="gameover-title" class="text-4xl font-bold font-fun text-rose-500 mb-2">¡EL REY FUE ATRAPADO!</h2>
+            <p id="gameover-message" class="text-slate-300 max-w-md mb-8">El torreón se llenó de bloques. El Rey THEO necesita que estudies un poco más las phrasal verbs.</p>
+            
+            <div class="grid grid-cols-2 gap-4 max-w-sm w-full mb-8 bg-slate-900 p-5 rounded-2xl border border-slate-800">
+                <div class="text-center">
+                    <span class="text-xs text-slate-400 uppercase tracking-widest block mb-1">Matches</span>
+                    <span id="final-score" class="text-2xl font-bold text-amber-400">0</span>
+                </div>
+                <div class="text-center">
+                    <span class="text-xs text-slate-400 uppercase tracking-widest block mb-1">Racha Máx</span>
+                    <span id="final-streak" class="text-2xl font-bold text-emerald-400">0</span>
+                </div>
+            </div>
+
+            <button onclick="restartGameFromOver()" class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-fun">
+                Intentar de Nuevo
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Los 35 phrasal verbs de la sección B
+        const PHRASAL_VERBS_B = [
+            { id: 1, english: "Back away", spanish: "Retroceder" },
+            { id: 2, english: "Back out", spanish: "Volver atrás" },
+            { id: 3, english: "Back up", spanish: "Reforzar / Copia de seguridad" },
+            { id: 4, english: "Be about", spanish: "Estar por (un lugar)" },
+            { id: 5, english: "Be away", spanish: "Estar fuera" },
+            { id: 6, english: "Be after", spanish: "Intentar, conseguir" },
+            { id: 7, english: "Be against", spanish: "Oponerse" },
+            { id: 8, english: "Be along", spanish: "Llegar" },
+            { id: 9, english: "Be back", spanish: "Estar de vuelta" },
+            { id: 10, english: "Be down", spanish: "Estar deprimido / Descender" },
+            { id: 11, english: "Be down on", spanish: "Desaprobar, no gustar" },
+            { id: 12, english: "Be down with", spanish: "Estar enfermo" },
+            { id: 13, english: "Be for", spanish: "Estar a favor de" },
+            { id: 14, english: "Be in", spanish: "Estar en casa" },
+            { id: 15, english: "Be into", spanish: "Estar interesado en algo" },
+            { id: 16, english: "Be off", spanish: "Irse / Estar apagado" },
+            { id: 17, english: "Be on", spanish: "Estar encendido / Emitirse" },
+            { id: 18, english: "Be on about", spanish: "Querer decir" },
+            { id: 19, english: "Be out", spanish: "Estar fuera / Quedarse sin" },
+            { id: 20, english: "Be out of", spanish: "Quedarse sin algo" },
+            { id: 21, english: "Be out to", spanish: "Intentar conseguir algo" },
+            { id: 22, english: "Be over", spanish: "Estar acabado" },
+            { id: 23, english: "Be up", spanish: "Estar levantado" },
+            { id: 24, english: "Be up to", spanish: "Ser responsabilidad de alguien" },
+            { id: 25, english: "Bend down", spanish: "Agacharse" },
+            { id: 26, english: "Bend over", spanish: "Inclinarse" },
+            { id: 27, english: "Blow away", spanish: "Impresionar" },
+            { id: 28, english: "Blow down", spanish: "Derrumbarse por el viento" },
+            { id: 29, english: "Blow off", spanish: "Dejar salir (vapor)" },
+            { id: 30, english: "Blow out", spanish: "Apagar (una llama)" },
+            { id: 31, english: "Blow up", spanish: "Volar (con explosivos)" },
+            { id: 32, english: "Break away", spanish: "Soltarse" },
+            { id: 33, english: "Break down", spanish: "Dejar de funcionar / Derruir" },
+            { id: 34, english: "Break in", spanish: "Irrumpir / Interrumpir" },
+            { id: 35, english: "Break off", spanish: "Romper (relaciones)" }
+        ];
+
+        // Configuración y variables de estado del juego
+        let score = 0;
+        let speedMultiplier = 1.0; // Incrementa un +1% (+0.01) ante cada fallo
+        let currentStreak = 0;
+        let maxStreak = 0;
+        let isAudioEnabled = true;
+        let gameLoopActive = false;
+
+        // Propiedades de la caída de bloques
+        let currentBlockY = 0; 
+        let activeBlockData = null;
+        const baseDuration = 13000; // Ajustado a 13 segundos reales (+30% de tiempo de descenso)
+        let animationFrameId = null;
+        let lastTimestamp = 0;
+
+        // Estado de la pila de bloques
+        let stackedBlocks = [];
+        const MAX_STACK_SIZE = 8; // Bloques permitidos acumulados
+
+        // Tone.js Synth para efectos de sonido retro de Royal Match
+        let synth = null;
+
+        // Inicialización de la aplicación
+        window.onload = function() {
+            renderWordsDeck();
+            initAudio();
+        };
+
+        function initAudio() {
+            try {
+                // Sintetizador para emular sonidos arcade
+                synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                synth.set({
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.05, decay: 0.1, sustain: 0.3, release: 0.4 }
+                });
+            } catch (e) {
+                console.warn("No se pudo iniciar el sintetizador de audio", e);
+            }
+        }
+
+        function playSound(type) {
+            if (!isAudioEnabled || !synth) return;
+            try {
+                const now = Tone.now();
+                if (type === "success") {
+                    synth.triggerAttackRelease("C5", "16n", now);
+                    synth.triggerAttackRelease("E5", "16n", now + 0.08);
+                    synth.triggerAttackRelease("G5", "8n", now + 0.16);
+                } else if (type === "error") {
+                    synth.triggerAttackRelease("F3", "8n", now);
+                    synth.triggerAttackRelease("C3", "4n", now + 0.12);
+                } else if (type === "gameover") {
+                    synth.triggerAttackRelease("Eb3", "4n", now);
+                    synth.triggerAttackRelease("D3", "4n", now + 0.25);
+                    synth.triggerAttackRelease("C3", "2n", now + 0.5);
+                } else if (type === "clear") {
+                    synth.triggerAttackRelease("A4", "16n", now);
+                    synth.triggerAttackRelease("C5", "16n", now + 0.08);
+                    synth.triggerAttackRelease("E5", "16n", now + 0.16);
+                    synth.triggerAttackRelease("A5", "8n", now + 0.24);
+                }
+            } catch (error) {
+                console.error("Fallo al reproducir audio", error);
+            }
+        }
+
+        function toggleAudio() {
+            isAudioEnabled = !isAudioEnabled;
+            const btn = document.getElementById("audio-toggle");
+            if (isAudioEnabled) {
+                btn.innerHTML = "🔊 Sonido";
+                btn.className = "px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition duration-150 border border-slate-700 flex items-center justify-center";
+            } else {
+                btn.innerHTML = "🔇 Silencio";
+                btn.className = "px-5 py-3 bg-rose-950 text-rose-300 font-bold rounded-xl transition duration-150 border border-rose-800 flex items-center justify-center";
+            }
+        }
+
+        function renderWordsDeck() {
+            const deck = document.getElementById("words-deck");
+            deck.innerHTML = "";
+
+            // Orden alfabético para dinamismo del juego de respuesta rápida
+            const sortedPhrasals = [...PHRASAL_VERBS_B].sort((a, b) => a.english.localeCompare(b.english));
+
+            sortedPhrasals.forEach(item => {
+                const btn = document.createElement("button");
+                btn.id = `verb-btn-${item.id}`;
+                btn.className = `p-3 rounded-xl text-center text-xs sm:text-sm font-bold tracking-wide shadow-md border-2 transform active:scale-95 transition-all duration-150 cursor-pointer font-fun flex flex-col justify-center items-center h-16 select-none ${getThemeClass(item.english)}`;
+                btn.onclick = () => handleAnswerAttempt(item.id);
+
+                const wordSpan = document.createElement("span");
+                wordSpan.innerText = item.english;
+                wordSpan.className = "text-sm sm:text-base font-fun tracking-wide block";
+                btn.appendChild(wordSpan);
+
+                deck.appendChild(btn);
+            });
+        }
+
+        // Colores según prefijos gramaticales
+        function getThemeClass(english) {
+            const upper = english.toUpperCase();
+            if (upper.startsWith("BACK")) {
+                return "bg-blue-600/90 hover:bg-blue-500 border-blue-400 text-white";
+            } else if (upper.startsWith("BE ABOUT") || upper.startsWith("BE AWAY") || upper.startsWith("BE AFTER") || upper.startsWith("BE AGAINST") || upper.startsWith("BE ALONG") || upper.startsWith("BE BACK") || upper.startsWith("BE DOWN")) {
+                return "bg-emerald-600/90 hover:bg-emerald-500 border-emerald-400 text-white";
+            } else if (upper.startsWith("BE FOR") || upper.startsWith("BE IN") || upper.startsWith("BE INTO") || upper.startsWith("BE OFF") || upper.startsWith("BE ON") || upper.startsWith("BE OUT") || upper.startsWith("BE OVER") || upper.startsWith("BE UP")) {
+                return "bg-purple-600/90 hover:bg-purple-500 border-purple-400 text-white";
+            } else {
+                return "bg-amber-600/90 hover:bg-amber-500 border-amber-400 text-slate-950";
+            }
+        }
+
+        function startGame() {
+            Tone.start();
+            document.getElementById("splash-screen").classList.add("hidden");
+            restartGameEngine();
+        }
+
+        function restartGameEngine() {
+            score = 0;
+            speedMultiplier = 1.0;
+            currentStreak = 0;
+            maxStreak = 0;
+            stackedBlocks = [];
+            
+            updateHUD();
+            renderStackedBlocks();
+            
+            document.getElementById("gameover-screen").classList.add("hidden");
+            
+            gameLoopActive = true;
+            spawnNewBlock();
+        }
+
+        function spawnNewBlock() {
+            if (!gameLoopActive) return;
+
+            // Seleccionar palabra aleatoria
+            const randIndex = Math.floor(Math.random() * PHRASAL_VERBS_B.length);
+            activeBlockData = PHRASAL_VERBS_B[randIndex];
+
+            const blockEl = document.getElementById("falling-block");
+            const conceptEl = document.getElementById("falling-concept");
+            conceptEl.innerText = activeBlockData.spanish;
+
+            // Reiniciar coordenadas
+            currentBlockY = 0;
+            blockEl.style.top = "0px";
+            blockEl.style.display = "flex";
+            updateBlockTimerBar(100);
+
+            lastTimestamp = performance.now();
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(updateGamePhysics);
+        }
+
+        function updateGamePhysics(timestamp) {
+            if (!gameLoopActive) return;
+
+            const elapsed = timestamp - lastTimestamp;
+            lastTimestamp = timestamp;
+
+            const arena = document.getElementById("tower-arena");
+            const blockEl = document.getElementById("falling-block");
+            
+            const arenaHeight = arena.clientHeight;
+            const blockHeight = blockEl.clientHeight || 74;
+            const bottomMargin = 110; // Espacio inferior reservado para el Rey THEO
+            
+            const stackHeight = stackedBlocks.length * 40; 
+            const limitY = Math.max(50, arenaHeight - blockHeight - bottomMargin - stackHeight);
+
+            // CORRECCIÓN MATEMÁTICA: La velocidad base ahora depende exactamente del límite dinámico (limitY)
+            // de modo que el recorrido completo siempre dura exactamente 10 segundos reales (ajustado por el multiplicador)
+            const step = (limitY / (baseDuration / speedMultiplier)) * elapsed;
+            currentBlockY += step;
+
+            // Calcular porcentaje real en función del límite dinámico
+            const percentageLeft = Math.max(0, 100 - (currentBlockY / limitY) * 100);
+            updateBlockTimerBar(percentageLeft);
+
+            if (currentBlockY >= limitY) {
+                // Aterrizaje sin respuesta correcta a tiempo
+                currentBlockY = limitY;
+                blockEl.style.top = `${limitY}px`;
+                handleBlockLanding();
+            } else {
+                blockEl.style.top = `${currentBlockY}px`;
+                animationFrameId = requestAnimationFrame(updateGamePhysics);
+            }
+        }
+
+        function updateBlockTimerBar(percent) {
+            const bar = document.getElementById("block-timer-bar");
+            if (bar) {
+                bar.style.width = `${percent}%`;
+                if (percent < 30) {
+                    bar.className = "bg-rose-500 h-full transition-all duration-75 animate-pulse";
+                } else if (percent < 60) {
+                    bar.className = "bg-orange-500 h-full transition-all duration-75";
+                } else {
+                    bar.className = "bg-white h-full transition-all duration-75";
+                }
+            }
+        }
+
+        function handleAnswerAttempt(selectedId) {
+            if (!gameLoopActive || !activeBlockData) return;
+
+            if (selectedId === activeBlockData.id) {
+                handleCorrectMatch();
+            } else {
+                handleIncorrectMatch(selectedId);
+            }
+        }
+
+        function handleCorrectMatch() {
+            playSound("success");
+            
+            score += 100 + (currentStreak * 10);
+            currentStreak++;
+            if (currentStreak > maxStreak) maxStreak = currentStreak;
+
+            const blockEl = document.getElementById("falling-block");
+            blockEl.classList.add("scale-110", "bg-emerald-500", "border-emerald-300");
+            
+            spawnParticles();
+
+            // Quita la fila más antigua del stack para liberar espacio
+            if (stackedBlocks.length > 0) {
+                stackedBlocks.shift();
+                setTimeout(() => {
+                    playSound("clear");
+                    renderStackedBlocks();
+                    updateKingVisualState();
+                }, 100);
+            }
+
+            updateHUD();
+
+            cancelAnimationFrame(animationFrameId);
+            gameLoopActive = false;
+
+            setTimeout(() => {
+                blockEl.classList.remove("scale-110", "bg-emerald-500", "border-emerald-300");
+                gameLoopActive = true;
+                spawnNewBlock();
+            }, 300);
+        }
+
+        function handleIncorrectMatch(selectedId) {
+            playSound("error");
+            currentStreak = 0;
+
+            // Incrementa permanentemente la velocidad un 1% (aceleración base)
+            speedMultiplier += 0.01;
+
+            const btn = document.getElementById(`verb-btn-${selectedId}`);
+            if (btn) {
+                btn.classList.add("animate-bounce", "bg-rose-600", "border-rose-300");
+                setTimeout(() => {
+                    btn.classList.remove("animate-bounce", "bg-rose-600", "border-rose-300");
+                }, 500);
+            }
+
+            const blockEl = document.getElementById("falling-block");
+            blockEl.classList.add("bg-rose-500", "border-rose-300");
+            setTimeout(() => {
+                blockEl.classList.remove("bg-rose-500", "border-rose-300");
+            }, 300);
+
+            // Castigo inmediato: el bloque baja de golpe un tramo para forzar la toma de decisión rápida
+            currentBlockY += 45;
+
+            updateHUD();
+        }
+
+        function handleBlockLanding() {
+            cancelAnimationFrame(animationFrameId);
+            playSound("error");
+            currentStreak = 0;
+
+            stackedBlocks.push({
+                spanish: activeBlockData.spanish,
+                english: activeBlockData.english
+            });
+
+            // Fallar en responder antes del fondo también suma un 1% a la velocidad
+            speedMultiplier += 0.01;
+
+            renderStackedBlocks();
+            updateHUD();
+            updateKingVisualState();
+
+            if (stackedBlocks.length >= MAX_STACK_SIZE) {
+                triggerGameOver();
+            } else {
+                const blockEl = document.getElementById("falling-block");
+                blockEl.style.display = "none";
+                
+                setTimeout(() => {
+                    spawnNewBlock();
+                }, 200);
+            }
+        }
+
+        function renderStackedBlocks() {
+            const container = document.getElementById("block-stack-container");
+            container.innerHTML = "";
+
+            stackedBlocks.forEach(block => {
+                const bEl = document.createElement("div");
+                bEl.className = "w-full py-2 px-3 bg-gradient-to-r from-slate-700 to-slate-800 border-l-4 border-rose-500 text-slate-300 text-xs font-bold rounded-lg flex justify-between items-center shadow shadow-black/40 animate-pulse";
+                bEl.innerHTML = `
+                    <span class="truncate">${block.spanish}</span>
+                    <span class="text-[10px] bg-rose-950 text-rose-300 px-2 py-0.5 rounded border border-rose-800">${block.english}</span>
+                `;
+                container.appendChild(bEl);
+            });
+        }
+
+        function updateKingVisualState() {
+            const count = stackedBlocks.length;
+            
+            const happyFace = document.getElementById("king-face-happy");
+            const scaredFace = document.getElementById("king-face-scared");
+            const panicFace = document.getElementById("king-face-panic");
+            const defeatFace = document.getElementById("king-face-defeat");
+            const bubble = document.getElementById("king-bubble");
+            const kingSvg = document.getElementById("king-svg");
+
+            happyFace.classList.add("hidden");
+            scaredFace.classList.add("hidden");
+            panicFace.classList.add("hidden");
+            defeatFace.classList.add("hidden");
+            bubble.classList.remove("scale-100");
+            bubble.classList.add("scale-0");
+            kingSvg.style.transform = "scale(1)";
+
+            if (count === 0) {
+                happyFace.classList.remove("hidden");
+            } else if (count <= 3) {
+                scaredFace.classList.remove("hidden");
+                bubble.innerText = "¡Guau, cuidado! 📦";
+                bubble.classList.remove("scale-0");
+                bubble.classList.add("scale-100");
+                kingSvg.style.transform = "scale(1.05) translateY(-2px)";
+            } else if (count < MAX_STACK_SIZE) {
+                panicFace.classList.remove("hidden");
+                bubble.innerText = "¡SÁLVAME! 👑🐾";
+                bubble.classList.remove("scale-0");
+                bubble.classList.add("scale-100");
+                kingSvg.style.transform = "scale(1.15) translateY(-5px) rotate(2deg)";
+            } else {
+                defeatFace.classList.remove("hidden");
+            }
+        }
+
+        function spawnParticles() {
+            const arena = document.getElementById("tower-arena");
+            const emojis = ["👑", "⭐", "✨", "✨", "🎉"];
+            
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement("div");
+                particle.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                particle.className = "absolute text-lg select-none pointer-events-none z-30 transition-all duration-1000 ease-out";
+                
+                particle.style.left = `${20 + Math.random() * 60}%`;
+                particle.style.bottom = "110px";
+                particle.style.transform = "scale(0.5)";
+                particle.style.opacity = "1";
+                
+                arena.appendChild(particle);
+
+                setTimeout(() => {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 80 + Math.random() * 80;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = -Math.sin(angle) * distance;
+                    
+                    particle.style.transform = `translate(${tx}px, ${ty}px) scale(1.5) rotate(${Math.random() * 360}deg)`;
+                    particle.style.opacity = "0";
+                }, 50);
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 1100);
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById("score-text").innerText = `${score} pts`;
+            const speedPercentage = Math.round((speedMultiplier - 1.0) * 100);
+            document.getElementById("speed-text").innerText = `+${speedPercentage}%`;
+            document.getElementById("streak-text").innerText = `${currentStreak} 🔥`;
+        }
+
+        function triggerGameOver() {
+            gameLoopActive = false;
+            cancelAnimationFrame(animationFrameId);
+            playSound("gameover");
+
+            updateKingVisualState();
+            document.getElementById("king-face-panic").classList.add("hidden");
+            document.getElementById("king-face-defeat").classList.remove("hidden");
+
+            document.getElementById("final-score").innerText = `${score} pts`;
+            document.getElementById("final-streak").innerText = `${maxStreak} 🔥`;
+
+            const msgEl = document.getElementById("gameover-message");
+            const titleEl = document.getElementById("gameover-title");
+            const emojiEl = document.getElementById("gameover-emoji");
+
+            if (score >= 1500) {
+                emojiEl.innerText = "🐕👑";
+                titleEl.innerText = "¡EL REY YORKIE TE ADORA!";
+                titleEl.className = "text-4xl font-bold font-fun text-emerald-400 mb-2";
+                msgEl.innerText = "¡Espectacular! Salvaste a THEO con un dominio increíble de los Phrasal Verbs de la Sección B. ¡Eres de la realeza perruna!";
+            } else {
+                emojiEl.innerText = "😢🐕";
+                titleEl.innerText = "¡EL REY FUE ATRAPADO!";
+                titleEl.className = "text-4xl font-bold font-fun text-rose-500 mb-2";
+                msgEl.innerText = "Los bloques llegaron a la parte superior de la torre. ¡Sigue practicando para rescatar a tu fiel amigo Yorkshire!";
+            }
+
+            document.getElementById("gameover-screen").classList.remove("hidden");
+        }
+
+        function restartGameFromOver() {
+            restartGameEngine();
+        }
+
+        function resetGame() {
+            if (confirm("¿Seguro que deseas reiniciar el juego actual? Se perderá tu puntuación.")) {
+                restartGameEngine();
+            }
+        }
+    </script>
+</body>
+</html>
