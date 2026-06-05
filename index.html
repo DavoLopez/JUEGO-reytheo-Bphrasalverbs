@@ -2,48 +2,54 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Salva al Rey Theo: Phrasal Verbs (Sección B)</title>
-    <!-- Tailwind CSS para el estilizado moderno e interactivo -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter para legibilidad premium y Fredoka para el toque divertido y arcade -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Tone.js para efectos de sonido e interactividad de audio sintetizado -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+            touch-action: manipulation;
         }
         .font-fun {
             font-family: 'Fredoka', sans-serif;
         }
-        /* Animaciones divertidas */
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-8px) rotate(1deg); }
+        /* Botones de respuesta en forma de cubo con efecto 3D */
+        .cube-btn {
+            transition: transform 0.1s, border-bottom-width 0.1s;
         }
-        .animate-float {
-            animation: float 4s ease-in-out infinite;
+        .cube-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 2px !important;
         }
-        @keyframes pulse-gold {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(251, 191, 36, 0.6); }
-            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(251, 191, 36, 0.9); }
+        /* Animación para el cartel de BONUS */
+        @keyframes bonus-pulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(234, 179, 8, 0.6)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(234, 179, 8, 0.9)); }
         }
-        .btn-gold-pulse {
-            animation: pulse-gold 2s infinite;
+        .animate-bonus-banner {
+            animation: bonus-pulse 1.5s infinite ease-in-out;
         }
-        /* Animación destellante para el botón de ayuda correcto */
-        @keyframes help-flash {
-            0%, 100% { background-color: #f43f5e; box-shadow: 0 0 15px #f43f5e; color: white; transform: scale(1); }
-            50% { background-color: #ec4899; box-shadow: 0 0 35px #ec4899; color: white; transform: scale(1.08); }
+        /* Animación de texto de bonus que sube al acertar */
+        @keyframes float-up {
+            0% { transform: translateY(0px) scale(0.8); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translateY(-80px) scale(1.2); opacity: 0; }
         }
-        .help-active {
-            animation: help-flash 0.8s infinite alternate !important;
-            z-index: 40 !important;
-            border-color: #fca5a5 !important;
+        .animate-float-up {
+            animation: float-up 1.2s forwards ease-out;
         }
-        /* Esconder barras de desplazamiento */
+        /* Animación destellante para la ayuda SOS */
+        @keyframes help-glow {
+            0%, 100% { box-shadow: 0 0 8px rgba(244, 63, 94, 0.6); border-color: #f43f5e; }
+            50% { box-shadow: 0 0 25px rgba(244, 63, 94, 1); border-color: #fda4af; transform: scale(1.02); }
+        }
+        .help-active-btn {
+            animation: help-glow 0.6s infinite alternate !important;
+        }
+        /* Ocultar scrollbar */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -53,312 +59,333 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-slate-100 overflow-x-hidden">
+<body class="min-h-screen flex flex-col items-center justify-start p-2 sm:p-4 text-slate-100 overflow-x-hidden selection:bg-indigo-500/30">
 
-    <div id="game-container" class="w-full max-w-6xl bg-slate-900/90 border-4 border-amber-400 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
+    <div id="game-container" class="w-full max-w-md bg-slate-900/90 border-2 border-amber-400 rounded-3xl overflow-hidden shadow-2xl flex flex-col relative min-h-[92vh]">
         
         <!-- Pantalla de Inicio / Splash Screen -->
-        <div id="splash-screen" class="absolute inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center p-6 text-center">
-            <!-- Corona decorativa -->
+        <div id="splash-screen" class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
             <div class="text-7xl mb-4 animate-bounce">👑🐕</div>
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-300 font-fun tracking-wide leading-tight mb-2">
+            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-300 font-fun tracking-wide leading-tight mb-2">
                 SALVA AL REY THEO
             </h1>
-            <h2 class="text-xl text-indigo-300 font-semibold mb-6">El Rey Yorkie - Phrasal Verbs B</h2>
+            <h2 class="text-lg text-indigo-300 font-semibold mb-6">Phrasal Verbs - Sección B (Móvil)</h2>
             
-            <div class="max-w-md bg-indigo-950/80 border border-indigo-500/30 rounded-2xl p-5 mb-8 text-slate-200 text-sm sm:text-base leading-relaxed shadow-inner">
-                <p class="mb-3">👑 <strong class="text-amber-400">¿Cuál es tu misión?</strong> El adorable Rey THEO (un perrito Yorkie) está atrapado en la torre. Caerán bloques con conceptos en español de forma continua.</p>
-                <p class="mb-3">⚡ Tienes <strong class="text-yellow-400">20 segundos reales</strong> de caída por palabra para encontrar su equivalente en inglés del banco de respuestas.</p>
-                <p class="mb-3">🎯 <strong class="text-emerald-400">Sistema de Puntuación:</strong> Recibes <strong class="text-emerald-400">5 puntos</strong> por verbos de 2 palabras y <strong class="text-emerald-400">10 puntos</strong> por los de 3 palabras. Si usas ayuda, recibirás la mitad.</p>
-                <p class="mb-3">⭐ <strong class="text-cyan-400">Metas de Nivel:</strong> Nivel 1: <strong class="text-amber-400">50 pts</strong> | Nivel 2: <strong class="text-amber-400">100 pts</strong> | Nivel 3: <strong class="text-amber-400">150 pts</strong> | Nivel 4 (Final): <strong class="text-amber-400">200 pts</strong>.</p>
-                <p>⚠️ <strong class="text-rose-400">Ayudas Limitadas:</strong> Solo tienes <strong class="text-rose-400">3 ayudas SOS</strong> por nivel. ¡Se recargan al subir de nivel!</p>
+            <div class="max-w-xs bg-indigo-950/80 border border-indigo-500/30 rounded-2xl p-4 mb-6 text-slate-200 text-xs sm:text-sm leading-relaxed shadow-inner text-left">
+                <p class="mb-2">🐕 <strong class="text-amber-400">¡Nueva Interfaz Móvil!</strong> Theo está en el torreón. Elige rápidamente la traducción correcta entre las <strong class="text-emerald-400">3 opciones</strong> de la parte inferior.</p>
+                <p class="mb-2">⚡ Cada nivel tiene <strong class="text-yellow-400">palabras únicas de la sección B</strong> de <strong>PHRASAL VERBS.pdf</strong>. Al encontrarlas, ¡desaparecen y subes de nivel!</p>
+                <p class="mb-2">🚀 <strong class="text-rose-400">Aceleración:</strong> Aumenta un 1% por fallo dentro del nivel, pero se reinicia al avanzar.</p>
+                <p class="mb-2">🔥 <strong class="text-cyan-400">Racha Bonus:</strong> ¡Acertar 5 seguidas activa un espectacular <strong class="text-yellow-400">BONUS X2</strong> en tu siguiente acierto!</p>
+                <p>⚠️ <strong class="text-rose-500">Cuidado:</strong> Si fallas mientras la racha está activa, se mostrará el aviso de <strong class="text-rose-400">¡Bonus Perdido!</strong></p>
             </div>
 
-            <button onclick="startGame()" class="px-8 py-4 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-fun btn-gold-pulse">
+            <button onclick="startGame()" class="w-11/12 py-4 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-lg rounded-2xl shadow-lg transform active:scale-95 transition-all duration-200 font-fun">
                 ¡EMPEZAR A JUGAR!
             </button>
         </div>
 
-        <!-- Columna de la Torre (Rediseñada para ser mucho más alta y estilizada: efecto 500x100) -->
-        <div class="w-full md:w-5/12 bg-slate-950 p-4 border-b-4 md:border-b-0 md:border-r-4 border-slate-800 flex flex-col justify-between relative min-h-[600px] md:min-h-[780px]">
-            
-            <!-- Marcadores y estadísticas -->
-            <div class="bg-indigo-950/60 p-3 rounded-2xl border border-indigo-500/20 mb-3 flex justify-between items-center text-sm font-fun shadow-md">
-                <div>
-                    <span id="level-text" class="text-indigo-300 block text-xs uppercase tracking-wider">Nivel 1</span>
-                    <span id="score-text" class="text-2xl text-amber-400 font-bold">0 pts</span>
-                </div>
-                <div class="text-center">
-                    <span class="text-indigo-300 block text-xs uppercase tracking-wider">Aceleración</span>
-                    <span id="speed-text" class="text-lg text-rose-400 font-bold">+0%</span>
-                </div>
-                <div class="text-right">
-                    <span class="text-indigo-300 block text-xs uppercase tracking-wider">Racha Máx</span>
-                    <span id="streak-text" class="text-2xl text-emerald-400 font-bold">0 🔥</span>
+        <div class="bg-slate-950 p-3 border-b-2 border-slate-800 grid grid-cols-3 gap-2 text-center text-xs font-fun">
+            <div class="bg-indigo-950/40 p-2 rounded-xl border border-indigo-500/20">
+                <span id="level-text" class="text-indigo-300 block text-[10px] uppercase tracking-wider font-semibold">Nivel 1</span>
+                <span id="score-text" class="text-base text-amber-400 font-bold">0 pts</span>
+            </div>
+            <div class="bg-indigo-950/40 p-2 rounded-xl border border-indigo-500/20">
+                <span class="text-indigo-300 block text-[10px] uppercase tracking-wider font-semibold">Aceleración</span>
+                <span id="speed-text" class="text-base text-rose-400 font-bold">+0%</span>
+            </div>
+            <div class="bg-indigo-950/40 p-2 rounded-xl border border-indigo-500/20 relative">
+                <span class="text-indigo-300 block text-[10px] uppercase tracking-wider font-semibold">Racha Actual</span>
+                <span id="streak-text" class="text-base text-emerald-400 font-bold">0 🔥</span>
+            </div>
+        </div>
+
+        <!-- Cartelera de Bonus Flotante Dinámico -->
+        <div id="bonus-alert-banner" class="hidden w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-slate-950 text-center font-bold text-xs py-1.5 px-3 font-fun animate-bonus-banner tracking-wide uppercase">
+            🔥 ¡Siguiente palabra vale DOBLE! (BONUS X2) 🔥
+        </div>
+
+        <div id="tower-arena" class="relative flex-grow bg-gradient-to-b from-indigo-950/30 via-purple-950/20 to-slate-950 min-h-[320px] max-h-[380px] overflow-hidden flex flex-col justify-end border-b-2 border-slate-800">
+            <!-- Efecto decorativo de fondo -->
+            <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#5a5fcf_1px,transparent_1px)] [background-size:12px_12px]"></div>
+
+            <!-- Marca de Agua de Bonus X2 en el centro de la pantalla -->
+            <div id="bonus-watermark" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 hidden">
+                <div class="text-4xl sm:text-5xl font-black text-amber-400/20 uppercase tracking-widest font-fun select-none animate-pulse rotate-[-12deg] border-4 border-dashed border-amber-400/10 p-4 rounded-3xl">
+                    ⚡ BONUS X2 ⚡
                 </div>
             </div>
 
-            <!-- Torreón del Rey (Área de Caída Alta y Estilizada) -->
-            <div id="tower-arena" class="relative flex-grow bg-gradient-to-b from-indigo-950/40 via-purple-950/30 to-slate-950 rounded-2xl border-2 border-indigo-500/30 overflow-hidden shadow-inner flex flex-col justify-end min-h-[480px] md:min-h-[620px]">
+            <!-- Marca de Agua de Bonus Perdido (Nuevo) -->
+            <div id="bonus-lost-watermark" class="absolute inset-0 flex items-center justify-center pointer-events-none z-40 hidden">
+                <div class="text-3xl font-black text-rose-500 uppercase tracking-widest font-fun select-none animate-bounce border-4 border-dashed border-rose-500/60 p-4 rounded-3xl bg-slate-950/95 backdrop-blur-sm shadow-xl">
+                    😢 BONUS PERDIDO ❌
+                </div>
+            </div>
+
+            <!-- Overlay de Felicitación por Bonus en el centro de la pantalla -->
+            <div id="bonus-congrats-overlay" class="absolute inset-0 bg-indigo-950/95 z-40 flex flex-col items-center justify-center p-4 text-center transition-all duration-300 opacity-0 pointer-events-none scale-90 rounded-2xl">
+                <div class="text-5xl mb-2 animate-bounce">✨🏆🐕✨</div>
+                <h3 class="text-2xl font-bold font-fun text-yellow-400 mb-1 tracking-wide">¡EXCELENTE!</h3>
+                <p id="bonus-congrats-text" class="text-emerald-300 font-semibold text-xs sm:text-sm leading-tight">¡Has completado el match!</p>
+            </div>
+
+            <!-- Indicador de Bonus Flotante (Efecto de Partícula) -->
+            <div id="bonus-floating-text" class="absolute left-1/2 top-1/3 -translate-x-1/2 z-40 font-black text-3xl text-yellow-400 drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] font-fun tracking-widest hidden pointer-events-none">
+                ¡BONUS X2!
+            </div>
+
+            <!-- Bloque Cayendo (Dinamizado con spawn automático en JS) -->
+            <div id="falling-block" class="absolute left-4 right-4 rounded-xl p-3 shadow-lg font-bold flex flex-col items-center justify-center border-2 transition-all duration-75 select-none z-30" style="top: 0px; display: none;">
+                <div id="falling-label" class="text-[10px] uppercase tracking-widest font-semibold mb-0.5">Traduce este phrasal verb</div>
+                <div id="falling-concept" class="text-base sm:text-lg font-fun text-center tracking-wide leading-tight">Concepto</div>
+                <!-- Indicador visual de tiempo -->
+                <div class="w-full bg-black/20 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div id="block-timer-bar" class="bg-white h-full transition-all duration-100" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- Pila de bloques acumulados al fondo -->
+            <div id="block-stack-container" class="w-full flex flex-col justify-end p-2 gap-1 z-10">
+                <!-- Los bloques apilados se insertarán dinámicamente aquí -->
+            </div>
+
+            <div class="relative w-full h-24 flex flex-col items-center justify-end z-20 pointer-events-none pb-1 bg-gradient-to-t from-indigo-950/90 to-transparent">
+                <!-- Burbuja de auxilio interactiva -->
+                <div id="king-bubble" class="absolute bottom-16 bg-white text-slate-900 font-bold font-fun px-3 py-1 rounded-full text-[10px] shadow-lg border border-slate-300 transition-all duration-300 scale-0 origin-bottom">
+                    ¡Guau! ¡Ayúdame! 👑
+                </div>
                 
-                <!-- Fondo simulando un calabozo royal -->
-                <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#5a5fcf_1px,transparent_1px)] [background-size:16px_16px]"></div>
-
-                <!-- Bloque Cayendo (Dinámico con colores adaptativos) -->
-                <div id="falling-block" class="absolute left-4 right-4 rounded-xl p-3 shadow-lg font-bold flex flex-col items-center justify-center border-2 transition-all duration-75 select-none z-30" style="top: 0px; display: none;">
-                    <div id="falling-label" class="text-xs uppercase tracking-widest font-semibold mb-1">Traduce esta palabra</div>
-                    <div id="falling-concept" class="text-lg sm:text-xl font-fun text-center tracking-wide leading-tight">Concepto</div>
-                    <!-- Indicador visual de tiempo -->
-                    <div class="w-full bg-black/20 h-1.5 rounded-full mt-2 overflow-hidden">
-                        <div id="block-timer-bar" class="bg-white h-full transition-all duration-100" style="width: 100%;"></div>
-                    </div>
-                </div>
-
-                <!-- Pila de bloques acumulados al fondo -->
-                <div id="block-stack-container" class="w-full flex flex-col justify-end p-2 gap-1.5 z-10">
-                    <!-- Los bloques apilados se insertarán dinámicamente aquí -->
-                </div>
-
-                <!-- El Rey THEO al final de la torre (Perrito Yorkshire con corona) -->
-                <div class="relative w-full h-28 flex flex-col items-center justify-end z-20 pointer-events-none pb-2 bg-gradient-to-t from-indigo-950/80 to-transparent">
-                    <!-- Burbuja de auxilio -->
-                    <div id="king-bubble" class="absolute bottom-20 bg-white text-slate-900 font-bold font-fun px-3 py-1 rounded-full text-xs shadow-lg border border-slate-300 transition-all duration-300 scale-0 origin-bottom">
-                        ¡Guau! ¡Ayúdame! 👑
-                    </div>
+                <!-- SVG de Yorkshire Terrier Rey -->
+                <svg id="king-svg" class="w-20 h-20 drop-shadow-lg transition-transform duration-300" viewBox="0 0 100 100">
+                    <!-- Cuerpo (Pelaje azul acero Yorkshire) -->
+                    <path d="M 30,95 C 30,75 35,65 50,65 C 65,65 70,75 70,95 Z" fill="#334155" stroke="#1e293b" stroke-width="2" />
+                    <!-- Pecho (Pelaje fuego) -->
+                    <path d="M 42,69 Q 50,65 58,69 L 54,95 L 46,95 Z" fill="#eab308" />
                     
-                    <!-- SVG Animado del Perrito Yorkie Rey -->
-                    <svg id="king-svg" class="w-24 h-24 drop-shadow-lg transition-transform duration-300" viewBox="0 0 100 100">
-                        <!-- Cuerpo (Pelaje azul acero) -->
-                        <path d="M 28,95 C 28,70 35,60 50,60 C 65,60 72,70 72,95 Z" fill="#334155" stroke="#1e293b" stroke-width="2" />
-                        <!-- Pecho (Pelaje dorado) -->
-                        <path d="M 40,65 Q 50,60 60,65 L 55,95 L 45,95 Z" fill="#eab308" />
-                        
-                        <!-- Orejas erectas Yorkshire -->
-                        <path d="M 28,45 L 18,15 Q 32,25 36,40 Z" fill="#ca8a04" stroke="#1e293b" stroke-width="1.5" />
-                        <path d="M 26,40 L 21,20 Q 30,28 32,38 Z" fill="#fda4af" opacity="0.6" />
-                        
-                        <path d="M 72,45 L 82,15 Q 68,25 64,40 Z" fill="#ca8a04" stroke="#1e293b" stroke-width="1.5" />
-                        <path d="M 74,40 L 79,20 Q 70,28 68,38 Z" fill="#fda4af" opacity="0.6" />
+                    <!-- Orejas Yorkshire tiesas -->
+                    <path d="M 30,48 L 22,22 Q 34,32 38,44 Z" fill="#ca8a04" stroke="#1e293b" stroke-width="1.5" />
+                    <path d="M 28,44 L 24,26 Q 32,32 34,42 Z" fill="#fda4af" opacity="0.6" />
+                    
+                    <path d="M 70,48 L 78,22 Q 66,32 62,44 Z" fill="#ca8a04" stroke="#1e293b" stroke-width="1.5" />
+                    <path d="M 72,44 L 76,26 Q 68,32 66,42 Z" fill="#fda4af" opacity="0.6" />
 
-                        <!-- Cabeza pelaje doradito -->
-                        <circle cx="50" cy="48" r="22" fill="#ca8a04" stroke="#1e293b" stroke-width="2" />
-                        <path d="M 25,48 Q 15,55 25,62" fill="none" stroke="#ca8a04" stroke-width="4" stroke-linecap="round" />
-                        <path d="M 75,48 Q 85,55 75,62" fill="none" stroke="#ca8a04" stroke-width="4" stroke-linecap="round" />
-                        
-                        <!-- Hocico -->
-                        <ellipse cx="50" cy="54" rx="10" ry="7" fill="#fef08a" stroke="#ca8a04" stroke-width="1" />
-                        <path d="M 46,50 Q 50,47 54,50 Q 50,55 46,50" fill="#0f172a" />
+                    <!-- Cabeza pelaje canela/dorado -->
+                    <circle cx="50" cy="50" r="20" fill="#ca8a04" stroke="#1e293b" stroke-width="2" />
+                    <path d="M 27,51 Q 18,57 27,63" fill="none" stroke="#ca8a04" stroke-width="4" stroke-linecap="round" />
+                    <path d="M 73,51 Q 82,57 73,63" fill="none" stroke="#ca8a04" stroke-width="4" stroke-linecap="round" />
+                    
+                    <!-- Hocico Yorkshire -->
+                    <ellipse cx="50" cy="55" rx="8" ry="6" fill="#fef08a" stroke="#ca8a04" stroke-width="1" />
+                    <path d="M 47,52 Q 50,49 53,52 Q 50,56 47,52" fill="#0f172a" />
 
-                        <!-- Rostro por defecto -->
-                        <g id="king-face-happy">
-                            <circle cx="41" cy="42" r="3" fill="#0f172a" />
-                            <circle cx="40" cy="41" r="1" fill="#ffffff" />
-                            <circle cx="59" cy="42" r="3" fill="#0f172a" />
-                            <circle cx="58" cy="41" r="1" fill="#ffffff" />
-                            <path d="M 46,54 Q 50,59 54,54" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
-                            <path d="M 48,56 Q 50,62 52,56 Z" fill="#f43f5e" />
-                        </g>
+                    <!-- Expresión: Feliz / Por defecto -->
+                    <g id="king-face-happy">
+                        <circle cx="42" cy="45" r="2.5" fill="#0f172a" />
+                        <circle cx="41" cy="44" r="0.8" fill="#ffffff" />
+                        <circle cx="58" cy="45" r="2.5" fill="#0f172a" />
+                        <circle cx="57" cy="44" r="0.8" fill="#ffffff" />
+                        <path d="M 47,55 Q 50,59 53,55" fill="none" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M 48,56 Q 50,61 52,56 Z" fill="#f43f5e" />
+                    </g>
 
-                        <!-- Rostro Asustado -->
-                        <g id="king-face-scared" class="hidden">
-                            <ellipse cx="41" cy="42" rx="2.5" ry="3.5" fill="#0f172a" />
-                            <ellipse cx="59" cy="42" rx="2.5" ry="3.5" fill="#0f172a" />
-                            <path d="M 36,36 Q 41,38 45,35" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
-                            <path d="M 64,36 Q 59,38 55,35" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
-                            <circle cx="50" cy="58" r="2.5" fill="#0f172a" />
-                            <path d="M 32,45 C 30,48 30,52 32,52 C 34,52 34,48 32,45 Z" fill="#38bdf8" />
-                        </g>
+                    <!-- Expresión: Asustado -->
+                    <g id="king-face-scared" class="hidden">
+                        <ellipse cx="42" cy="45" rx="2" ry="3" fill="#0f172a" />
+                        <ellipse cx="58" cy="45" rx="2" ry="3" fill="#0f172a" />
+                        <circle cx="50" cy="59" r="2" fill="#0f172a" />
+                        <path d="M 33,48 Q 31,52 33,54" fill="none" stroke="#38bdf8" stroke-width="1.5" />
+                    </g>
 
-                        <!-- Rostro Aterrorizado -->
-                        <g id="king-face-panic" class="hidden">
-                            <circle cx="41" cy="42" r="4.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5" />
-                            <circle cx="41" cy="42" r="1.5" fill="#0f172a" />
-                            <circle cx="59" cy="42" r="4.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5" />
-                            <circle cx="59" cy="42" r="1.5" fill="#0f172a" />
-                            <ellipse cx="50" cy="60" rx="4" ry="3.5" fill="#ef4444" stroke="#0f172a" stroke-width="1.5" />
-                        </g>
+                    <!-- Expresión: Pánico -->
+                    <g id="king-face-panic" class="hidden">
+                        <circle cx="42" cy="45" r="4" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
+                        <circle cx="42" cy="45" r="1.5" fill="#0f172a" />
+                        <circle cx="58" cy="45" r="4" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
+                        <circle cx="58" cy="45" r="1.5" fill="#0f172a" />
+                        <ellipse cx="50" cy="60" rx="3.5" ry="3" fill="#ef4444" stroke="#0f172a" stroke-width="1" />
+                    </g>
 
-                        <!-- Rostro Derrotado -->
-                        <g id="king-face-defeat" class="hidden">
-                            <path d="M 38,39 L 44,45 M 44,39 L 38,45" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
-                            <path d="M 56,39 L 62,45 M 62,39 L 56,45" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
-                            <path d="M 46,58 Q 50,54 54,58" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
-                        </g>
+                    <!-- Expresión: Derrota -->
+                    <g id="king-face-defeat" class="hidden">
+                        <path d="M 39,42 L 45,48 M 45,42 L 39,48" stroke="#475569" stroke-width="2" stroke-linecap="round" />
+                        <path d="M 55,42 L 61,48 M 61,42 L 55,48" stroke="#475569" stroke-width="2" stroke-linecap="round" />
+                        <path d="M 47,58 Q 50,55 53,58" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" />
+                    </g>
 
-                        <!-- Corona de Oro coqueta -->
-                        <g id="king-crown">
-                            <path d="M 38,26 L 36,10 L 45,18 L 50,7 L 55,18 L 64,10 L 62,26 Z" fill="#fbbf24" stroke="#d97706" stroke-width="2" />
-                            <circle cx="50" cy="7" r="2" fill="#ef4444" />
-                            <circle cx="36" cy="10" r="1.5" fill="#3b82f6" />
-                            <circle cx="64" cy="10" r="1.5" fill="#3b82f6" />
-                        </g>
-                    </svg>
-                </div>
+                    <!-- Corona Real Yorkshire -->
+                    <g id="king-crown">
+                        <path d="M 39,30 L 37,16 L 45,23 L 50,13 L 55,23 L 63,16 L 61,30 Z" fill="#fbbf24" stroke="#d97706" stroke-width="1.5" />
+                        <circle cx="50" cy="13" r="1.5" fill="#ef4444" />
+                        <circle cx="37" cy="16" r="1" fill="#3b82f6" />
+                        <circle cx="63" cy="16" r="1" fill="#3b82f6" />
+                    </g>
+                </svg>
             </div>
         </div>
 
-        <!-- Columna del Banco de Palabras -->
-        <div class="w-full md:w-7/12 p-4 sm:p-6 flex flex-col justify-between bg-slate-900">
-            <div class="mb-4">
-                <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-                    <h3 class="text-xl font-bold font-fun text-yellow-400 flex items-center gap-2">
-                        <span>📚</span> Banco de Phrasal Verbs (B)
-                    </h3>
-                    <span class="text-xs bg-slate-800 text-indigo-300 font-semibold px-2 py-1 rounded-lg border border-slate-700">
-                        35 Términos únicos
-                    </span>
-                </div>
-                <p class="text-xs text-slate-400 mb-4">
-                    Selecciona rápidamente la opción en inglés correspondiente al concepto en español que está cayendo en la torre. ¡La velocidad mental es clave!
-                </p>
-
-                <!-- Categorías visuales por colores para facilitar el escaneo del usuario -->
-                <div class="flex gap-2 flex-wrap mb-4 text-[10px] font-semibold">
-                    <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">Prefijo BACK-</span>
-                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Prefijo BE- (A-I)</span>
-                    <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Prefijo BE- (O-U)</span>
-                    <span class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-500/30">BEND / BLOW / BREAK</span>
-                </div>
-
-                <!-- Botón de Ayuda SOS Llamativo y Limitado -->
-                <button id="help-btn" onclick="useHelp()" class="w-full mb-4 py-3 bg-gradient-to-r from-rose-500 via-amber-500 to-yellow-500 hover:from-rose-600 hover:to-yellow-600 text-white font-black text-sm uppercase tracking-wider rounded-2xl shadow-lg hover:shadow-xl transform active:scale-95 transition-all duration-300 animate-pulse flex items-center justify-center gap-2 border border-white/20 select-none">
-                    💡 ¡AYUDA SOS! (3 restantes)
-                </button>
-
-                <!-- Grilla de 35 Botones (Todos en la misma pantalla sin compartimentar) -->
-                <div id="words-deck" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[440px] md:max-h-[540px] overflow-y-auto pr-1 no-scrollbar p-1 bg-slate-950/40 rounded-2xl border border-slate-800 shadow-inner">
-                    <!-- Los 35 botones se generarán dinámicamente mediante JS -->
-                </div>
-            </div>
-
-            <!-- Botones de Control de Sistema -->
-            <div class="flex gap-3 mt-4 border-t border-slate-800 pt-4">
-                <button onclick="resetGame()" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition duration-150 font-fun border border-slate-700 flex items-center justify-center gap-2">
-                    🔄 Reiniciar
-                </button>
-                <button onclick="toggleAudio()" id="audio-toggle" class="px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition duration-150 border border-slate-700 flex items-center justify-center">
-                    🔊 Sonido
-                </button>
-            </div>
-        </div>
-
-        <!-- Pantalla de Fin de Juego (Game Over / Éxito) -->
-        <div id="gameover-screen" class="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center hidden">
-            <!-- Emoticono Triste/Feliz -->
-            <div id="gameover-emoji" class="text-7xl mb-4 animate-bounce">😢</div>
-            <h2 id="gameover-title" class="text-4xl font-bold font-fun text-rose-500 mb-2">¡EL REY FUE ATRAPADO!</h2>
-            <p id="gameover-message" class="text-slate-300 max-w-md mb-8">El torreón se llenó de bloques. El Rey THEO necesita que estudies un poco más las phrasal verbs.</p>
+        <div class="p-4 bg-slate-900 flex flex-col gap-2.5">
+            <span class="text-[10px] text-indigo-300 font-bold uppercase tracking-wider block text-center">Selecciona el Phrasal Verb Correcto:</span>
             
-            <div class="grid grid-cols-2 gap-4 max-w-sm w-full mb-8 bg-slate-900 p-5 rounded-2xl border border-slate-800">
-                <div class="text-center">
-                    <span class="text-xs text-slate-400 uppercase tracking-widest block mb-1">Puntos</span>
-                    <span id="final-score" class="text-2xl font-bold text-amber-400">0</span>
+            <div id="choices-container" class="grid grid-cols-3 gap-2.5 w-full">
+                <!-- Se inyectarán dinámicamente 3 botones adaptativos en forma de cubo (una misma línea) -->
+            </div>
+
+            <!-- Botón Ayuda SOS (Dentro de la acción del jugador) -->
+            <button id="help-btn" onclick="useHelp()" class="w-full py-3 mt-1 bg-gradient-to-r from-rose-500 via-amber-500 to-yellow-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transform active:scale-95 transition-all duration-200 flex items-center justify-center gap-1">
+                💡 AYUDA SOS (3 Restantes)
+            </button>
+        </div>
+
+        <!-- Controles de configuración inferiores -->
+        <div class="p-3 bg-slate-950 border-t border-slate-800 flex gap-3 text-xs">
+            <button onclick="triggerConfirmReset()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg transition duration-150 font-fun flex items-center justify-center gap-1.5 border border-slate-700/60">
+                🔄 Reiniciar
+            </button>
+            <button id="audio-toggle" onclick="toggleAudio()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg transition duration-150 border border-slate-700/60">
+                🔊 Sonido
+            </button>
+        </div>
+
+        <!-- SCREEN: Game Over -->
+        <div id="gameover-screen" class="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center hidden">
+            <div id="gameover-emoji" class="text-6xl mb-3 animate-bounce">😢🐕</div>
+            <h2 id="gameover-title" class="text-3xl font-bold font-fun text-rose-500 mb-2">¡EL REY FUE ATRAPADO!</h2>
+            <p id="gameover-message" class="text-slate-300 text-xs sm:text-sm max-w-xs mb-6">El torreón se llenó de bloques. El Rey Theo necesita que estudies un poco más los phrasal verbs.</p>
+            
+            <div class="grid grid-cols-2 gap-3 max-w-xs w-full mb-6 bg-slate-900 p-4 rounded-xl border border-slate-800 text-center">
+                <div>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-0.5">Puntuación</span>
+                    <span id="final-score" class="text-xl font-bold text-amber-400">0</span>
                 </div>
-                <div class="text-center">
-                    <span class="text-xs text-slate-400 uppercase tracking-widest block mb-1">Racha Máx</span>
-                    <span id="final-streak" class="text-2xl font-bold text-emerald-400">0</span>
+                <div>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-0.5">Racha Máx</span>
+                    <span id="final-streak" class="text-xl font-bold text-emerald-400">0</span>
                 </div>
             </div>
 
-            <button onclick="restartGameFromOver()" class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-fun">
+            <button onclick="restartGameFromOver()" class="w-11/12 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-base rounded-xl shadow-lg transform active:scale-95 transition-all duration-200 font-fun">
                 Intentar de Nuevo
             </button>
         </div>
 
-        <!-- Pantalla de Felicidades / Level Up (Estilo iOS) -->
+        <!-- Popups de Felicitación por nivel superado -->
         <div id="levelup-screen" class="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center hidden">
-            <div class="text-7xl mb-4 animate-bounce">🎉👑</div>
-            <h2 id="levelup-title" class="text-4xl font-bold font-fun text-amber-400 mb-2">¡NIVEL COMPLETADO!</h2>
-            <p id="levelup-message" class="text-slate-300 max-w-md mb-8">¡Excelente! Has alcanzado la meta requerida para avanzar.</p>
+            <div class="text-6xl mb-3 animate-bounce">🎉🏆</div>
+            <h2 id="levelup-title" class="text-3xl font-bold font-fun text-amber-400 mb-1">¡NIVEL COMPLETADO!</h2>
+            <p id="levelup-message" class="text-slate-300 text-xs sm:text-sm max-w-xs mb-6">¡Buenísimo! Has completado el mazo de este nivel con éxito.</p>
             
-            <div class="flex flex-col sm:flex-row gap-4 max-w-sm w-full">
-                <button onclick="continueToNextLevel()" class="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-lg rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200 font-fun">
-                    Continuar
+            <div class="flex flex-col gap-2.5 w-full max-w-xs">
+                <button onclick="continueToNextLevel()" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-base rounded-xl shadow-lg transform active:scale-95 transition-all duration-200 font-fun">
+                    Continuar al Siguiente Nivel
                 </button>
-                <button onclick="quitGame()" class="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-lg rounded-2xl shadow-lg border border-slate-700 transform hover:scale-105 transition-all duration-200 font-fun">
+                <button onclick="quitGame()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm rounded-xl border border-slate-700/80 transform active:scale-95 transition-all duration-200 font-fun">
                     Dejar
                 </button>
             </div>
         </div>
+
+        <!-- Custom Confirmation Modal (Evita el uso de confirm()) -->
+        <div id="confirm-modal" class="absolute inset-0 z-50 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center hidden">
+            <div class="text-5xl mb-3">⚠️</div>
+            <h3 class="text-2xl font-bold font-fun text-yellow-400 mb-2">¿REINICIAR PARTIDA?</h3>
+            <p class="text-slate-300 text-xs sm:text-sm max-w-xs mb-6">Se perderá todo tu progreso actual de nivel, puntuación y racha acumulada.</p>
+            
+            <div class="flex flex-col gap-2.5 w-full max-w-xs">
+                <button onclick="confirmResetAct(true)" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-base rounded-xl shadow-lg transform active:scale-95 transition-all duration-200 font-fun">
+                    Sí, Reiniciar
+                </button>
+                <button onclick="confirmResetAct(false)" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm rounded-xl border border-slate-700/80 transform active:scale-95 transition-all duration-200 font-fun">
+                    No, Seguir Jugando
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // Los 35 phrasal verbs de la sección B
+        // Mazo EXACTO de 39 Phrasal Verbs de la sección B (sin repetición, dividido en 4 niveles)
         const PHRASAL_VERBS_B = [
-            { id: 1, english: "Back away", spanish: "Retroceder" },
-            { id: 2, english: "Back out", spanish: "Volver atrás" },
-            { id: 3, english: "Back up", spanish: "Reforzar / Copia de seguridad" },
-            { id: 4, english: "Be about", spanish: "Estar por (un lugar)" },
-            { id: 5, english: "Be away", spanish: "Estar fuera" },
-            { id: 6, english: "Be after", spanish: "Intentar, conseguir" },
-            { id: 7, english: "Be against", spanish: "Oponerse" },
-            { id: 8, english: "Be along", spanish: "Llegar" },
-            { id: 9, english: "Be back", spanish: "Estar de vuelta" },
-            { id: 10, english: "Be down", spanish: "Estar deprimido / Descender" },
-            { id: 11, english: "Be down on", spanish: "Desaprobar, no gustar" },
-            { id: 12, english: "Be down with", spanish: "Estar enfermo" },
-            { id: 13, english: "Be for", spanish: "Estar a favor de" },
-            { id: 14, english: "Be in", spanish: "Estar en casa" },
-            { id: 15, english: "Be into", spanish: "Estar interesado en algo" },
-            { id: 16, english: "Be off", spanish: "Irse / Estar apagado" },
-            { id: 17, english: "Be on", spanish: "Estar encendido / Emitirse" },
-            { id: 18, english: "Be on about", spanish: "Querer decir" },
-            { id: 19, english: "Be out", spanish: "Estar fuera / Quedarse sin" },
-            { id: 20, english: "Be out of", spanish: "Quedarse sin algo" },
-            { id: 21, english: "Be out to", spanish: "Intentar conseguir algo" },
-            { id: 22, english: "Be over", spanish: "Estar acabado" },
-            { id: 23, english: "Be up", spanish: "Estar levantado" },
-            { id: 24, english: "Be up to", spanish: "Ser responsabilidad de alguien" },
-            { id: 25, english: "Bend down", spanish: "Agacharse" },
-            { id: 26, english: "Bend over", spanish: "Inclinarse" },
-            { id: 27, english: "Blow away", spanish: "Impresionar" },
-            { id: 28, english: "Blow down", spanish: "Derrumbarse por el viento" },
-            { id: 29, english: "Blow off", spanish: "Dejar salir (vapor)" },
-            { id: 30, english: "Blow out", spanish: "Apagar (una llama)" },
-            { id: 31, english: "Blow up", spanish: "Volar (con explosivos)" },
-            { id: 32, english: "Break away", spanish: "Soltarse" },
-            { id: 33, english: "Break down", spanish: "Dejar de funcionar / Derruir" },
-            { id: 34, english: "Break in", spanish: "Irrumpir / Interrumpir" },
-            { id: 35, english: "Break off", spanish: "Romper (relaciones)" }
+            // Nivel 1 (10 palabras: 1 a 10)
+            { id: 1, english: "Back away", spanish: "Retroceder", level: 1 },
+            { id: 2, english: "Back out", spanish: "Volver atrás", level: 1 },
+            { id: 3, english: "Back up", spanish: "Reforzar / Copia de seguridad", level: 1 },
+            { id: 4, english: "Be about", spanish: "Estar por (un lugar)", level: 1 },
+            { id: 5, english: "Be away", spanish: "Estar fuera", level: 1 },
+            { id: 6, english: "Be after", spanish: "Intentar, conseguir", level: 1 },
+            { id: 7, english: "Be against", spanish: "Oponerse", level: 1 },
+            { id: 8, english: "Be along", spanish: "Llegar", level: 1 },
+            { id: 9, english: "Be back", spanish: "Estar de vuelta", level: 1 },
+            { id: 10, english: "Be down", spanish: "Estar deprimido", level: 1 },
+
+            // Nivel 2 (10 palabras: 11 a 20)
+            { id: 11, english: "Be down", spanish: "Descender", level: 2 },
+            { id: 12, english: "Be down on", spanish: "Desaprobar, no gustar", level: 2 },
+            { id: 13, english: "Be down with", spanish: "Estar enfermo", level: 2 },
+            { id: 14, english: "Be for", spanish: "Estar a favor de", level: 2 },
+            { id: 15, english: "Be in", spanish: "Estar en casa", level: 2 },
+            { id: 16, english: "Be into", spanish: "Estar interesado en algo", level: 2 },
+            { id: 17, english: "Be off", spanish: "Irse / Estar apagado", level: 2 },
+            { id: 18, english: "Be on", spanish: "Estar encendido / Emitirse", level: 2 },
+            { id: 19, english: "Be on about", spanish: "Querer decir", level: 2 },
+            { id: 20, english: "Be out", spanish: "Estar fuera / Quedarse sin", level: 2 },
+
+            // Nivel 3 (10 palabras: 21 a 30)
+            { id: 21, english: "Be out of", spanish: "Quedarse sin algo", level: 3 },
+            { id: 22, english: "Be out to", spanish: "Intentar conseguir algo", level: 3 },
+            { id: 23, english: "Be over", spanish: "Estar acabado", level: 3 },
+            { id: 24, english: "Be up", spanish: "Estar levantado", level: 3 },
+            { id: 25, english: "Be up to", spanish: "Ser responsabilidad de alguien", level: 3 },
+            { id: 26, english: "Bend down", spanish: "Agacharse", level: 3 },
+            { id: 27, english: "Bend over", spanish: "Inclinarse", level: 3 },
+            { id: 28, english: "Blow away", spanish: "Impresionar", level: 3 },
+            { id: 29, english: "Blow down", spanish: "Derrumbarse por el viento", level: 3 },
+            { id: 30, english: "Blow off", spanish: "Dejar salir (vapor)", level: 3 },
+
+            // Nivel 4 (9 palabras: 31 a 39)
+            { id: 31, english: "Blow out", spanish: "Apagar (una llama)", level: 4 },
+            { id: 32, english: "Blow up", spanish: "Volar (con explosivos)", level: 4 },
+            { id: 33, english: "Break away", spanish: "Soltarse", level: 4 },
+            { id: 34, english: "Break down", spanish: "Dejar de funcionar / Derruir", level: 4 },
+            { id: 35, english: "Break in", spanish: "Irrumpir / Interrumpir", level: 4 },
+            { id: 36, english: "Break off", spanish: "Romper (relaciones)", level: 4 },
+            { id: 37, english: "Break out", spanish: "Escapar / Estallar", level: 4 },
+            { id: 38, english: "Break up", spanish: "Terminar una relación", level: 4 },
+            { id: 39, english: "Bring about", spanish: "Acarrear", level: 4 }
         ];
 
-        // Configuración y variables de estado del juego
         let score = 0;
-        let speedMultiplier = 1.0; // Incrementa un +1% (+0.01) ante cada fallo, y +0.05% (+0.0005) por ayuda
+        let speedMultiplier = 1.0; 
         let currentStreak = 0;
         let maxStreak = 0;
         let isAudioEnabled = true;
         let gameLoopActive = false;
-        let isHelpUsed = false; // Registra si se ha solicitado ayuda en el bloque actual
-        let helpUsesRemaining = 3; // Límite estricto de ayudas por nivel (se recarga al cambiar nivel)
         let currentLevel = 1;
-        const levelGoals = [50, 100, 150, 200];
+        let helpUsesRemaining = 3;
+        let isHelpUsedInCurrentWord = false;
+        let isDoublePointsActive = false;
 
-        // Lista de Phrasal Verbs ya descubiertas en este nivel (se grisan y desactivan)
-        let solvedWordIds = new Set();
+        // Estructura de mazo seguro por nivel para prevenir repetición
+        let solvedWordsCurrentLevel = new Set();
 
-        // Propiedades de la caída de bloques
-        let currentBlockY = 0; 
+        // Parámetros de caída del bloque
+        let currentBlockY = 0;
         let activeBlockData = null;
         let animationFrameId = null;
         let lastTimestamp = 0;
+        let currentChoices = [];
 
         // Estado de la pila de bloques
         let stackedBlocks = [];
-        const MAX_STACK_SIZE = 8; // Bloques permitidos acumulados
+        const MAX_STACK_SIZE = 6; 
 
-        // Tone.js Synth para efectos de sonido retro de Royal Match
         let synth = null;
 
-        // Inicialización de la aplicación
         window.onload = function() {
-            renderWordsDeck();
             initAudio();
         };
 
         function initAudio() {
             try {
-                // Sintetizador para emular sonidos arcade
                 synth = new Tone.PolySynth(Tone.Synth).toDestination();
                 synth.set({
                     oscillator: { type: "triangle" },
@@ -369,12 +396,12 @@
             }
         }
 
-        // Retorna el tiempo base de descenso dependiendo del nivel actual del juego
+        // Obtener la velocidad según el nivel del jugador
         function getBaseDurationForLevel(level) {
-            if (level === 1) return 20000; // Nivel 1: 20 segundos
-            if (level === 2) return 18000; // Nivel 2: 18 segundos
-            if (level === 3) return 15000; // Nivel 3: 15 segundos
-            return 12000;                  // Nivel 4: 12 segundos
+            if (level === 1) return 20000; // 20 segundos
+            if (level === 2) return 18000; // 18 segundos
+            if (level === 3) return 15000; // 15 segundos
+            return 12000;                  // 12 segundos (Nivel 4)
         }
 
         function playSound(type) {
@@ -396,7 +423,11 @@
                     synth.triggerAttackRelease("A4", "16n", now);
                     synth.triggerAttackRelease("C5", "16n", now + 0.08);
                     synth.triggerAttackRelease("E5", "16n", now + 0.16);
-                    synth.triggerAttackRelease("A5", "8n", now + 0.24);
+                } else if (type === "level") {
+                    synth.triggerAttackRelease("G4", "8n", now);
+                    synth.triggerAttackRelease("B4", "8n", now + 0.1);
+                    synth.triggerAttackRelease("D5", "8n", now + 0.2);
+                    synth.triggerAttackRelease("G5", "4n", now + 0.3);
                 }
             } catch (error) {
                 console.error("Fallo al reproducir audio", error);
@@ -408,96 +439,58 @@
             const btn = document.getElementById("audio-toggle");
             if (isAudioEnabled) {
                 btn.innerHTML = "🔊 Sonido";
-                btn.className = "px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition duration-150 border border-slate-700 flex items-center justify-center";
+                btn.className = "px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg transition duration-150 border border-slate-700/60";
             } else {
                 btn.innerHTML = "🔇 Silencio";
-                btn.className = "px-5 py-3 bg-rose-950 text-rose-300 font-bold rounded-xl transition duration-150 border border-rose-800 flex items-center justify-center";
+                btn.className = "px-4 py-2.5 bg-rose-950 text-rose-300 font-bold rounded-lg transition duration-150 border border-rose-800";
             }
         }
 
-        function renderWordsDeck() {
-            const deck = document.getElementById("words-deck");
-            deck.innerHTML = "";
-
-            // Orden alfabético para dinamismo del juego de respuesta rápida
-            const sortedPhrasals = [...PHRASAL_VERBS_B].sort((a, b) => a.english.localeCompare(b.english));
-
-            sortedPhrasals.forEach(item => {
-                const btn = document.createElement("button");
-                btn.id = `verb-btn-${item.id}`;
-                btn.className = `p-3 rounded-xl text-center text-xs sm:text-sm font-bold tracking-wide shadow-md border-2 transform active:scale-95 transition-all duration-150 cursor-pointer font-fun flex flex-col justify-center items-center h-16 select-none ${getThemeClass(item.english)}`;
-                btn.onclick = () => handleAnswerAttempt(item.id);
-
-                const wordSpan = document.createElement("span");
-                wordSpan.innerText = item.english;
-                wordSpan.className = "text-sm sm:text-base font-fun tracking-wide block";
-                btn.appendChild(wordSpan);
-
-                deck.appendChild(btn);
-            });
-        }
-
-        function getThemeClass(english) {
-            const upper = english.toUpperCase();
-            if (upper.startsWith("BACK")) {
-                return "bg-blue-600/90 hover:bg-blue-500 border-blue-400 text-white";
-            } else if (upper.startsWith("BE ABOUT") || upper.startsWith("BE AWAY") || upper.startsWith("BE AFTER") || upper.startsWith("BE AGAINST") || upper.startsWith("BE ALONG") || upper.startsWith("BE BACK") || upper.startsWith("BE DOWN")) {
-                return "bg-emerald-600/90 hover:bg-emerald-500 border-emerald-400 text-white";
-            } else if (upper.startsWith("BE FOR") || upper.startsWith("BE IN") || upper.startsWith("BE INTO") || upper.startsWith("BE OFF") || upper.startsWith("BE ON") || upper.startsWith("BE OUT") || upper.startsWith("BE OVER") || upper.startsWith("BE UP")) {
-                return "bg-purple-600/90 hover:bg-purple-500 border-purple-400 text-white";
-            } else {
-                return "bg-amber-600/90 hover:bg-amber-500 border-amber-400 text-slate-950";
-            }
-        }
-
-        // Obtener el tema visual del bloque que cae para emparejar con el banco de respuestas
-        function getFallingTheme(english) {
+        // Obtener colores consistentes según prefijos gramaticales
+        function getThemeClassForBlock(english) {
             const upper = english.toUpperCase();
             if (upper.startsWith("BACK")) {
                 return {
-                    bg: ["bg-gradient-to-r", "from-blue-500", "to-indigo-600"],
-                    border: "border-blue-300",
+                    bg: ["bg-gradient-to-r", "from-blue-600", "to-indigo-600"],
+                    border: "border-blue-400",
                     text: "text-white",
-                    label: "text-blue-100"
+                    label: "text-blue-200"
                 };
             } else if (upper.startsWith("BE ABOUT") || upper.startsWith("BE AWAY") || upper.startsWith("BE AFTER") || upper.startsWith("BE AGAINST") || upper.startsWith("BE ALONG") || upper.startsWith("BE BACK") || upper.startsWith("BE DOWN")) {
                 return {
-                    bg: ["bg-gradient-to-r", "from-emerald-500", "to-teal-600"],
-                    border: "border-emerald-300",
+                    bg: ["bg-gradient-to-r", "from-emerald-600", "to-teal-600"],
+                    border: "border-emerald-400",
                     text: "text-white",
-                    label: "text-emerald-100"
+                    label: "text-emerald-200"
                 };
             } else if (upper.startsWith("BE FOR") || upper.startsWith("BE IN") || upper.startsWith("BE INTO") || upper.startsWith("BE OFF") || upper.startsWith("BE ON") || upper.startsWith("BE OUT") || upper.startsWith("BE OVER") || upper.startsWith("BE UP")) {
                 return {
-                    bg: ["bg-gradient-to-r", "from-purple-500", "to-fuchsia-600"],
-                    border: "border-purple-300",
+                    bg: ["bg-gradient-to-r", "from-purple-600", "to-fuchsia-600"],
+                    border: "border-purple-400",
                     text: "text-white",
-                    label: "text-purple-100"
+                    label: "text-purple-200"
                 };
             } else {
                 return {
-                    bg: ["bg-gradient-to-r", "from-amber-400", "to-orange-500"],
+                    bg: ["bg-gradient-to-r", "from-amber-500", "to-orange-500"],
                     border: "border-amber-300",
-                    text: "text-slate-900",
+                    text: "text-slate-950",
                     label: "text-amber-950"
                 };
             }
         }
 
-        // Actualiza el estilo del listado para pintar de gris oscuro y deshabilitar las ya descubiertas
-        function updateWordsDeckVisuals() {
-            PHRASAL_VERBS_B.forEach(item => {
-                const btn = document.getElementById(`verb-btn-${item.id}`);
-                if (!btn) return;
-                
-                if (solvedWordIds.has(item.id)) {
-                    // Diseño iOS Gris Oscuro Desactivado para palabras encontradas
-                    btn.className = "p-3 rounded-xl text-center text-xs sm:text-sm font-bold tracking-wide shadow-inner border-2 transform transition-all duration-150 cursor-not-allowed font-fun flex flex-col justify-center items-center h-16 select-none bg-slate-800 text-slate-500 border-slate-950 opacity-30 pointer-events-none";
-                } else {
-                    // Restablecer a su clase y color correspondientes
-                    btn.className = `p-3 rounded-xl text-center text-xs sm:text-sm font-bold tracking-wide shadow-md border-2 transform active:scale-95 transition-all duration-150 cursor-pointer font-fun flex flex-col justify-center items-center h-16 select-none ${getThemeClass(item.english)}`;
-                }
-            });
+        function getChoiceBtnTheme(english) {
+            const upper = english.toUpperCase();
+            if (upper.startsWith("BACK")) {
+                return "from-blue-600 to-indigo-700 text-white border-blue-400/50";
+            } else if (upper.startsWith("BE ABOUT") || upper.startsWith("BE AWAY") || upper.startsWith("BE AFTER") || upper.startsWith("BE AGAINST") || upper.startsWith("BE ALONG") || upper.startsWith("BE BACK") || upper.startsWith("BE DOWN")) {
+                return "from-emerald-600 to-teal-700 text-white border-emerald-400/50";
+            } else if (upper.startsWith("BE FOR") || upper.startsWith("BE IN") || upper.startsWith("BE INTO") || upper.startsWith("BE OFF") || upper.startsWith("BE ON") || upper.startsWith("BE OUT") || upper.startsWith("BE OVER") || upper.startsWith("BE UP")) {
+                return "from-purple-600 to-fuchsia-700 text-white border-purple-400/50";
+            } else {
+                return "from-amber-500 to-orange-500 text-slate-950 border-amber-400/50";
+            }
         }
 
         function startGame() {
@@ -508,101 +501,124 @@
 
         function restartGameEngine() {
             score = 0;
-            speedMultiplier = 1.0;
+            speedMultiplier = 1.0; 
             currentStreak = 0;
             maxStreak = 0;
             stackedBlocks = [];
-            isHelpUsed = false;
             helpUsesRemaining = 3;
+            isDoublePointsActive = false;
             currentLevel = 1;
-            solvedWordIds.clear();
+            solvedWordsCurrentLevel.clear();
             
             updateHUD();
-            renderWordsDeck();
             renderStackedBlocks();
-            updateWordsDeckVisuals();
+            updateKingVisualState();
             
             document.getElementById("gameover-screen").classList.add("hidden");
             document.getElementById("levelup-screen").classList.add("hidden");
+            document.getElementById("confirm-modal").classList.add("hidden");
+            document.getElementById("bonus-lost-watermark").classList.add("hidden");
             
             gameLoopActive = true;
             spawnNewBlock();
         }
 
+        // Crear una nueva palabra sin repetir con las de niveles cruzados
         function spawnNewBlock() {
             if (!gameLoopActive) return;
 
-            // Restablecer el estado de la ayuda del turno anterior
-            isHelpUsed = false;
-            document.querySelectorAll(".help-active").forEach(btn => btn.classList.remove("help-active"));
+            isHelpUsedInCurrentWord = false;
 
-            // Filtrar las phrasal verbs que NO se han solucionado aún para evitar repetir en este nivel
-            let availableWords = PHRASAL_VERBS_B.filter(word => !solvedWordIds.has(word.id));
-            if (availableWords.length === 0) {
-                // Si por algún motivo completamos todas las palabras, reiniciamos el mazo
-                solvedWordIds.clear();
-                updateWordsDeckVisuals();
-                availableWords = PHRASAL_VERBS_B;
+            // Conseguir palabras disponibles para este nivel
+            const levelPool = PHRASAL_VERBS_B.filter(w => w.level === currentLevel);
+            let availableWords = levelPool.filter(w => !solvedWordsCurrentLevel.has(w.id));
+
+            // Si se resolvieron todas las palabras del nivel, se avanza automáticamente
+            const targetCount = currentLevel === 4 ? 9 : 10;
+            if (availableWords.length === 0 || solvedWordsCurrentLevel.size >= targetCount) {
+                triggerLevelUp();
+                return;
             }
 
-            // Seleccionar palabra aleatoria del pool restante
+            // Seleccionar palabra activa al azar
             const randIndex = Math.floor(Math.random() * availableWords.length);
             activeBlockData = availableWords[randIndex];
 
+            // Renderizar bloque en pantalla
             const blockEl = document.getElementById("falling-block");
             const labelEl = document.getElementById("falling-label");
             const conceptEl = document.getElementById("falling-concept");
-            
             conceptEl.innerText = activeBlockData.spanish;
 
-            // Limpiar clases de color previas del bloque cayendo
-            blockEl.className = "absolute left-4 right-4 rounded-xl p-3 shadow-lg font-bold flex flex-col items-center justify-center border-2 transition-all duration-75 select-none z-30";
-            labelEl.className = "text-xs uppercase tracking-widest font-semibold mb-1";
+            // REVELAR EL BLOQUE EXPLICITAMENTE
+            blockEl.style.display = "flex";
+            currentBlockY = 0;
+            blockEl.style.top = "0px";
 
-            // Aplicar el nuevo tema coincidente
-            const theme = getFallingTheme(activeBlockData.english);
+            // Limpiar clases de estilo previas y setear color según grupo
+            blockEl.className = "absolute left-4 right-4 rounded-xl p-3 shadow-lg font-bold flex flex-col items-center justify-center border-2 transition-all duration-75 select-none z-30";
+            labelEl.className = "text-[10px] uppercase tracking-widest font-semibold mb-0.5";
+
+            const theme = getThemeClassForBlock(activeBlockData.english);
             theme.bg.forEach(cls => blockEl.classList.add(cls));
             blockEl.classList.add(theme.border, theme.text);
             labelEl.classList.add(theme.label);
 
-            // Reiniciar coordenadas
-            currentBlockY = 0;
-            blockEl.style.top = "0px";
-            blockEl.style.display = "flex";
-            updateBlockTimerBar(100);
+            // Generar las 3 opciones de respuesta
+            generateThreeChoices(levelPool, activeBlockData);
+
+            // Activar/Desactivar marca de agua y banner de Bonus X2 en el centro de la pantalla
+            const banner = document.getElementById("bonus-alert-banner");
+            const watermark = document.getElementById("bonus-watermark");
+            if (isDoublePointsActive) {
+                banner.classList.remove("hidden");
+                watermark.classList.remove("hidden");
+            } else {
+                banner.classList.add("hidden");
+                watermark.classList.add("hidden");
+            }
 
             lastTimestamp = performance.now();
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
             animationFrameId = requestAnimationFrame(updateGamePhysics);
         }
 
-        function useHelp() {
-            if (!gameLoopActive || !activeBlockData || isHelpUsed || helpUsesRemaining <= 0) return;
-
-            isHelpUsed = true;
-            helpUsesRemaining--;
+        // Generar 3 opciones: la correcta y 2 distractores del nivel actual
+        function generateThreeChoices(pool, correct) {
+            let options = [correct];
+            let distractors = pool.filter(w => w.id !== correct.id);
             
-            // Buscar y resaltar visualmente la Phrasal Verb correcta
-            const correctBtn = document.getElementById(`verb-btn-${activeBlockData.id}`);
-            if (correctBtn) {
-                correctBtn.classList.add("help-active");
-                correctBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+            distractors.sort(() => Math.random() - 0.5);
+            if (distractors.length > 0) options.push(distractors[0]);
+            if (distractors.length > 1) options.push(distractors[1]);
 
-            // Segunda penalización: Aumentar la velocidad en un 0.05%
-            speedMultiplier += 0.0005;
+            options.sort(() => Math.random() - 0.5);
+            currentChoices = options;
 
-            // Sonido mágico de sugerencia usando Tone.js
-            if (isAudioEnabled && synth) {
-                try {
-                    const now = Tone.now();
-                    synth.triggerAttackRelease("A4", "16n", now);
-                    synth.triggerAttackRelease("C#5", "16n", now + 0.08);
-                    synth.triggerAttackRelease("E5", "8n", now + 0.16);
-                } catch (e) {}
-            }
+            renderChoicesInUI();
+        }
 
-            updateHUD();
+        function renderChoicesInUI() {
+            const container = document.getElementById("choices-container");
+            container.innerHTML = "";
+
+            // Para que sea un reto real, las tres opciones comparten el mismo color (el color del phrasal verb correcto)
+            const commonThemeClass = getChoiceBtnTheme(activeBlockData.english);
+
+            currentChoices.forEach((choice) => {
+                const btn = document.createElement("button");
+                btn.id = `choice-btn-${choice.id}`;
+                
+                btn.className = `cube-btn aspect-square w-full p-2 bg-gradient-to-b ${commonThemeClass} border-2 border-b-8 rounded-2xl font-fun text-[10px] sm:text-xs md:text-sm font-bold shadow-lg flex flex-col items-center justify-center text-center select-none active:scale-95 transition-all duration-100`;
+                btn.onclick = () => handleChoiceTap(choice.id);
+
+                const textSpan = document.createElement("span");
+                textSpan.innerText = choice.english;
+                textSpan.className = "tracking-tight leading-tight break-words max-w-full px-1";
+                btn.appendChild(textSpan);
+
+                container.appendChild(btn);
+            });
         }
 
         function updateGamePhysics(timestamp) {
@@ -615,25 +631,21 @@
             const blockEl = document.getElementById("falling-block");
             
             const arenaHeight = arena.clientHeight;
-            const blockHeight = blockEl.clientHeight || 74;
-            const bottomMargin = 110; // Espacio inferior reservado para el Rey THEO
+            const blockHeight = blockEl.clientHeight || 70;
+            const bottomMargin = 96; 
             
-            const stackHeight = stackedBlocks.length * 40; 
-            const limitY = Math.max(50, arenaHeight - blockHeight - bottomMargin - stackHeight);
+            const stackHeight = stackedBlocks.length * 36; 
+            const limitY = Math.max(40, arenaHeight - blockHeight - bottomMargin - stackHeight);
 
-            // Duración base del descenso dependiendo del nivel actual (20s, 18s, 15s o 12s)
             const activeBaseDuration = getBaseDurationForLevel(currentLevel);
 
-            // La velocidad base depende del límite dinámico y el tiempo del nivel actual
             const step = (limitY / (activeBaseDuration / speedMultiplier)) * elapsed;
             currentBlockY += step;
 
-            // Calcular porcentaje real en función del límite dinámico
             const percentageLeft = Math.max(0, 100 - (currentBlockY / limitY) * 100);
             updateBlockTimerBar(percentageLeft);
 
             if (currentBlockY >= limitY) {
-                // Aterrizaje sin respuesta correcta a tiempo
                 currentBlockY = limitY;
                 blockEl.style.top = `${limitY}px`;
                 handleBlockLanding();
@@ -657,45 +669,73 @@
             }
         }
 
-        function handleAnswerAttempt(selectedId) {
-            if (!gameLoopActive || !activeBlockData) return;
-
-            // No permitir interaccionar con una palabra ya solucionada
-            if (solvedWordIds.has(selectedId)) return;
-
-            if (selectedId === activeBlockData.id) {
-                handleCorrectMatch();
-            } else {
-                handleIncorrectMatch(selectedId);
+        function triggerBonusLostWatermark() {
+            const lostWatermark = document.getElementById("bonus-lost-watermark");
+            if (lostWatermark) {
+                lostWatermark.classList.remove("hidden");
+                setTimeout(() => {
+                    lostWatermark.classList.add("hidden");
+                }, 2000);
             }
         }
 
-        function handleCorrectMatch() {
-            playSound("success");
-            
-            // Evaluar número de palabras en la phrasal verb inglesa
-            const words = activeBlockData.english.trim().split(/\s+/);
-            let earnedPoints = words.length === 3 ? 10 : 5;
+        function handleChoiceTap(selectedId) {
+            if (!gameLoopActive || !activeBlockData) return;
 
-            // Reducir a la mitad (redondeando hacia arriba) si se usó el SOS
-            if (isHelpUsed) {
+            if (selectedId === activeBlockData.id) {
+                handleCorrectAnswer();
+            } else {
+                handleIncorrectAnswer(selectedId);
+            }
+        }
+
+        function handleCorrectAnswer() {
+            playSound("success");
+
+            // Valoración de puntos: 5 puntos para 2 palabras, 10 puntos para 3 o más palabras
+            const wordCount = activeBlockData.english.trim().split(/\s+/).length;
+            let earnedPoints = wordCount >= 3 ? 10 : 5;
+
+            // Penalización por ayuda SOS: mitad de puntos
+            if (isHelpUsedInCurrentWord) {
                 earnedPoints = Math.ceil(earnedPoints / 2);
             }
-            score += earnedPoints;
 
+            const wasBonusActive = isDoublePointsActive;
+
+            // Multiplicador de racha X2
+            if (isDoublePointsActive) {
+                earnedPoints = earnedPoints * 2;
+                triggerFloatingBonusText();
+                isDoublePointsActive = false; 
+            }
+
+            score += earnedPoints;
             currentStreak++;
             if (currentStreak > maxStreak) maxStreak = currentStreak;
 
-            // Registrar palabra como solucionada en este nivel
-            solvedWordIds.add(activeBlockData.id);
-            updateWordsDeckVisuals();
+            // Conseguir racha de 5 seguidas activa el bonus X2 para la siguiente palabra
+            if (currentStreak > 0 && currentStreak % 5 === 0) {
+                isDoublePointsActive = true;
+            }
+
+            // Desaparecer la marca de agua del bonus
+            document.getElementById("bonus-watermark").classList.add("hidden");
+
+            // Mostrar felicitación si se resolvió el Bonus X2
+            if (wasBonusActive) {
+                showCongratulationsOverlay(earnedPoints);
+            }
+
+            // Agregar a la lista de resueltas del nivel
+            solvedWordsCurrentLevel.add(activeBlockData.id);
 
             const blockEl = document.getElementById("falling-block");
-            blockEl.classList.add("scale-110", "bg-emerald-500", "border-emerald-300");
+            blockEl.classList.add("scale-105", "bg-emerald-500", "border-emerald-300");
             
             spawnParticles();
 
-            // Quita la fila más antigua del stack para liberar espacio
+            // Eliminar la línea más antigua del stack si hay bloques acumulados
             if (stackedBlocks.length > 0) {
                 stackedBlocks.shift();
                 setTimeout(() => {
@@ -710,46 +750,59 @@
             cancelAnimationFrame(animationFrameId);
             gameLoopActive = false;
 
-            // Verificar condiciones de subida de nivel o victoria
             setTimeout(() => {
-                blockEl.classList.remove("scale-110", "bg-emerald-500", "border-emerald-300");
+                blockEl.classList.remove("scale-105", "bg-emerald-500", "border-emerald-300");
+                blockEl.style.display = "none";
                 
-                const currentGoal = levelGoals[currentLevel - 1];
-                if (score >= 200) {
-                    triggerGameOver(true); // ¡Ganó el juego definitivamente!
-                } else if (score >= currentGoal) {
+                const targetCount = currentLevel === 4 ? 9 : 10;
+                if (solvedWordsCurrentLevel.size >= targetCount) {
                     triggerLevelUp();
                 } else {
                     gameLoopActive = true;
                     spawnNewBlock();
                 }
-            }, 300);
+            }, 350);
         }
 
-        function handleIncorrectMatch(selectedId) {
+        function showCongratulationsOverlay(points) {
+            const overlay = document.getElementById("bonus-congrats-overlay");
+            const text = document.getElementById("bonus-congrats-text");
+            text.innerHTML = `¡Acertaste la racha con el doble de puntuación!<br><span class="text-2xl font-bold text-yellow-400 mt-2 block font-fun">+${points} Puntos</span>`;
+            
+            overlay.classList.remove("opacity-0", "scale-90", "pointer-events-none");
+            overlay.classList.add("opacity-100", "scale-100");
+
+            setTimeout(() => {
+                overlay.classList.remove("opacity-100", "scale-100");
+                overlay.classList.add("opacity-0", "scale-90", "pointer-events-none");
+            }, 1800);
+        }
+
+        function handleIncorrectAnswer(selectedId) {
             playSound("error");
             currentStreak = 0;
 
-            // Incrementa permanentemente la velocidad un 1% (aceleración base)
-            speedMultiplier += 0.01;
-
-            const btn = document.getElementById(`verb-btn-${selectedId}`);
-            if (btn) {
-                btn.classList.add("animate-bounce", "bg-rose-600", "border-rose-300");
-                setTimeout(() => {
-                    btn.classList.remove("animate-bounce", "bg-rose-600", "border-rose-300");
-                }, 500);
+            // Si falla teniendo racha/bonus activo, proyecta marca de agua de Bonus Perdido
+            if (isDoublePointsActive) {
+                triggerBonusLostWatermark();
+                isDoublePointsActive = false;
             }
 
-            const blockEl = document.getElementById("falling-block");
-            blockEl.classList.add("bg-rose-500", "border-rose-300");
-            setTimeout(() => {
-                blockEl.classList.remove("bg-rose-500", "border-rose-300");
-            }, 300);
+            document.getElementById("bonus-watermark").classList.add("hidden");
 
-            // Castigo inmediato: el bloque baja de golpe un tramo para forzar la toma de decisión rápida
-            currentBlockY += 45;
+            // Penalización por fallo: aumenta velocidad de este nivel en un 1%
+            speedMultiplier += 0.01;
 
+            const btn = document.getElementById(`choice-btn-${selectedId}`);
+            if (btn) {
+                btn.className = "cube-btn aspect-square w-full p-2 bg-rose-600 text-white border-rose-300 border-2 rounded-2xl font-fun text-[10px] sm:text-xs md:text-sm font-bold shadow-lg flex flex-col items-center justify-center text-center select-none active:scale-95 transition-all duration-100 animate-bounce";
+                setTimeout(() => {
+                    renderChoicesInUI(); 
+                }, 400);
+            }
+
+            // Baja el bloque de golpe un tramo
+            currentBlockY += 50;
             updateHUD();
         }
 
@@ -758,13 +811,22 @@
             playSound("error");
             currentStreak = 0;
 
+            // Si expira el tiempo con bonus, este se pierde de forma visible
+            if (isDoublePointsActive) {
+                triggerBonusLostWatermark();
+                isDoublePointsActive = false;
+            }
+
+            document.getElementById("bonus-watermark").classList.add("hidden");
+
+            // Penalización por colisión: aumenta velocidad un 1%
+            speedMultiplier += 0.01;
+
+            // Guardar en la pila acumulada
             stackedBlocks.push({
                 spanish: activeBlockData.spanish,
                 english: activeBlockData.english
             });
-
-            // Fallar en responder antes del fondo también suma un 1% a la velocidad
-            speedMultiplier += 0.01;
 
             renderStackedBlocks();
             updateHUD();
@@ -782,21 +844,103 @@
             }
         }
 
+        // Usar ayuda SOS: Alumbra el botón correcto
+        function useHelp() {
+            if (!gameLoopActive || !activeBlockData || isHelpUsedInCurrentWord || helpUsesRemaining <= 0) return;
+
+            isHelpUsedInCurrentWord = true;
+            helpUsesRemaining--;
+
+            // Penalización por ayuda: aumenta un 0.05% de velocidad
+            speedMultiplier += 0.0005;
+
+            const correctBtn = document.getElementById(`choice-btn-${activeBlockData.id}`);
+            if (correctBtn) {
+                correctBtn.classList.add("help-active-btn");
+            }
+
+            updateHUD();
+        }
+
         function renderStackedBlocks() {
             const container = document.getElementById("block-stack-container");
             container.innerHTML = "";
 
             stackedBlocks.forEach(block => {
                 const bEl = document.createElement("div");
-                bEl.className = "w-full py-2 px-3 bg-gradient-to-r from-slate-700 to-slate-800 border-l-4 border-rose-500 text-slate-300 text-xs font-bold rounded-lg flex justify-between items-center shadow shadow-black/40 animate-pulse";
+                bEl.className = "w-full py-1.5 px-3 bg-gradient-to-r from-slate-700 to-slate-800 border-l-4 border-rose-500 text-slate-300 text-[11px] font-bold rounded-lg flex justify-between items-center shadow shadow-black/40 animate-pulse";
                 bEl.innerHTML = `
                     <span class="truncate">${block.spanish}</span>
-                    <span class="text-[10px] bg-rose-950 text-rose-300 px-2 py-0.5 rounded border border-rose-800">${block.english}</span>
+                    <span class="text-[9px] bg-rose-950 text-rose-300 px-1.5 py-0.5 rounded border border-rose-800">${block.english}</span>
                 `;
                 container.appendChild(bEl);
             });
         }
 
+        function triggerFloatingBonusText() {
+            const textEl = document.getElementById("bonus-floating-text");
+            if (textEl) {
+                textEl.classList.remove("hidden");
+                textEl.className = "absolute left-1/2 top-1/3 -translate-x-1/2 z-40 font-black text-3xl text-yellow-400 drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] font-fun tracking-widest animate-float-up";
+                setTimeout(() => {
+                    textEl.classList.add("hidden");
+                }, 1200);
+            }
+        }
+
+        function spawnParticles() {
+            const arena = document.getElementById("tower-arena");
+            const emojis = ["👑", "⭐", "✨", "🎉"];
+            
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement("div");
+                particle.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                particle.className = "absolute text-base select-none pointer-events-none z-30 transition-all duration-1000 ease-out";
+                
+                particle.style.left = `${30 + Math.random() * 40}%`;
+                particle.style.bottom = "80px";
+                particle.style.transform = "scale(0.5)";
+                particle.style.opacity = "1";
+                
+                arena.appendChild(particle);
+
+                setTimeout(() => {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 60 + Math.random() * 60;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = -Math.sin(angle) * distance;
+                    
+                    particle.style.transform = `translate(${tx}px, ${ty}px) scale(1.3) rotate(${Math.random() * 360}deg)`;
+                    particle.style.opacity = "0";
+                }, 30);
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 1050);
+            }
+        }
+
+        // Actualizar HUD marcador
+        function updateHUD() {
+            document.getElementById("score-text").innerText = `${score} pts`;
+            document.getElementById("level-text").innerText = `Nivel ${currentLevel}`;
+            
+            const speedPercentage = ((speedMultiplier - 1.0) * 100).toFixed(2);
+            document.getElementById("speed-text").innerText = `+${parseFloat(speedPercentage)}%`;
+            document.getElementById("streak-text").innerText = `${currentStreak} 🔥`;
+
+            const helpBtn = document.getElementById("help-btn");
+            if (helpBtn) {
+                helpBtn.innerText = `💡 AYUDA SOS (${helpUsesRemaining} RESTANTES)`;
+                if (helpUsesRemaining <= 0) {
+                    helpBtn.className = "w-full py-3 mt-1 bg-slate-800 text-slate-500 font-bold text-xs uppercase tracking-wider rounded-xl cursor-not-allowed border border-slate-700/60 opacity-50";
+                } else {
+                    helpBtn.className = "w-full py-3 mt-1 bg-gradient-to-r from-rose-500 via-amber-500 to-yellow-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transform active:scale-95 transition-all duration-200 flex items-center justify-center gap-1";
+                }
+            }
+        }
+
+        // Expresión dinámica del Yorkie Theo según el peligro de la pila
         function updateKingVisualState() {
             const count = stackedBlocks.length;
             
@@ -815,35 +959,22 @@
             bubble.classList.add("scale-0");
             kingSvg.style.transform = "scale(1)";
 
-            // Frases aleatorias con consejos integrados para alternar en la burbuja
-            const happyPhrases = [
-                "¡Eres genial! ⭐",
-                "¡Todo despejado! ☀️",
-                "¡Buen trabajo! 👏",
-                "¡Sigue así! 🐾"
-            ];
-
             const warningPhrases = [
-                "¡Guau, cuidado! 📦",
+                "¡Cuidado! 📦",
                 "¡Busca el color y luego la frase! 🎨",
-                "¡El color azul agrupa los BACK-! 💙",
-                "¡El verde son los BE- (A-I)! 💚",
-                "¡Ayúdame! 👑"
+                "¡Ayúdame! 👑",
+                "¡No dejes que se llene! 🐾"
             ];
 
             const panicPhrases = [
                 "¡SÁLVAME! 👑🐾",
                 "¡Esto va muy rápido! ⚡",
-                "¡Usa el botón de ayuda SOS! 💡",
-                "¡No dejes que toquen el tope! 💣"
+                "¡Usa el botón SOS! 💡"
             ];
 
             if (count === 0) {
                 happyFace.classList.remove("hidden");
-                bubble.innerText = happyPhrases[Math.floor(Math.random() * happyPhrases.length)];
-                bubble.classList.remove("scale-0");
-                bubble.classList.add("scale-100");
-            } else if (count <= 3) {
+            } else if (count <= 2) {
                 scaredFace.classList.remove("hidden");
                 bubble.innerText = warningPhrases[Math.floor(Math.random() * warningPhrases.length)];
                 bubble.classList.remove("scale-0");
@@ -854,91 +985,52 @@
                 bubble.innerText = panicPhrases[Math.floor(Math.random() * panicPhrases.length)];
                 bubble.classList.remove("scale-0");
                 bubble.classList.add("scale-100");
-                kingSvg.style.transform = "scale(1.15) translateY(-5px) rotate(2deg)";
+                kingSvg.style.transform = "scale(1.1) translateY(-4px) rotate(2deg)";
             } else {
                 defeatFace.classList.remove("hidden");
-            }
-        }
-
-        function spawnParticles() {
-            const arena = document.getElementById("tower-arena");
-            const emojis = ["👑", "⭐", "✨", "✨", "🎉"];
-            
-            for (let i = 0; i < 12; i++) {
-                const particle = document.createElement("div");
-                particle.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-                particle.className = "absolute text-lg select-none pointer-events-none z-30 transition-all duration-1000 ease-out";
-                
-                particle.style.left = `${20 + Math.random() * 60}%`;
-                particle.style.bottom = "110px";
-                particle.style.transform = "scale(0.5)";
-                particle.style.opacity = "1";
-                
-                arena.appendChild(particle);
-
-                setTimeout(() => {
-                    const angle = Math.random() * Math.PI * 2;
-                    const distance = 80 + Math.random() * 80;
-                    const tx = Math.cos(angle) * distance;
-                    const ty = -Math.sin(angle) * distance;
-                    
-                    particle.style.transform = `translate(${tx}px, ${ty}px) scale(1.5) rotate(${Math.random() * 360}deg)`;
-                    particle.style.opacity = "0";
-                }, 50);
-
-                setTimeout(() => {
-                    particle.remove();
-                }, 1100);
-            }
-        }
-
-        function updateHUD() {
-            document.getElementById("score-text").innerText = `${score} pts`;
-            document.getElementById("level-text").innerText = `Nivel ${currentLevel} (Meta: ${levelGoals[currentLevel - 1]} pts)`;
-            
-            const speedPercentage = ((speedMultiplier - 1.0) * 100).toFixed(2);
-            document.getElementById("speed-text").innerText = `+${parseFloat(speedPercentage)}%`;
-            document.getElementById("streak-text").innerText = `${currentStreak} 🔥`;
-
-            // Actualizar botón de ayuda dinámicamente
-            const helpBtn = document.getElementById("help-btn");
-            if (helpBtn) {
-                helpBtn.innerText = `💡 ¡AYUDA SOS! (${helpUsesRemaining} restantes)`;
-                if (helpUsesRemaining <= 0) {
-                    helpBtn.classList.add("opacity-40", "pointer-events-none");
-                    helpBtn.classList.remove("animate-pulse");
-                } else {
-                    helpBtn.classList.remove("opacity-40", "pointer-events-none");
-                    helpBtn.classList.add("animate-pulse");
-                }
             }
         }
 
         function triggerLevelUp() {
             gameLoopActive = false;
             cancelAnimationFrame(animationFrameId);
-            playSound("success");
+            playSound("level");
 
-            // Configurar modal de subida de nivel
-            document.getElementById("levelup-title").innerText = `¡NIVEL ${currentLevel} COMPLETADO! 🎉`;
-            document.getElementById("levelup-message").innerText = `¡Espectacular! Has alcanzado ${score} puntos. Al avanzar al Nivel ${currentLevel + 1}, se recargarán tus 3 ayudas SOS pero la velocidad base del juego aumentará. ¿Deseas continuar?`;
+            const blockEl = document.getElementById("falling-block");
+            blockEl.style.display = "none";
+
+            // Si supera el nivel 4 (el último), se proclama victoria absoluta
+            if (currentLevel >= 4) {
+                triggerGameOver(true); 
+                return;
+            }
+
+            document.getElementById("levelup-title").innerText = `¡NIVEL ${currentLevel} SUPERADO! 🏆`;
+            document.getElementById("levelup-message").innerText = `¡Espectacular! Completaste las palabras de este nivel. Para el siguiente nivel, el tiempo de descenso bajará pero tus ayudas SOS se rellenarán al máximo.`;
             document.getElementById("levelup-screen").classList.remove("hidden");
         }
 
         function continueToNextLevel() {
             document.getElementById("levelup-screen").classList.add("hidden");
             currentLevel++;
-            
-            // Recompensa y balance: Reiniciar ayudas en cada nivel
+
+            // Reseteo de velocidad a base limpia de nivel y aceleración acumulada a cero
+            speedMultiplier = 1.0; 
+
+            // Reinicio justo de ayudas SOS en cada nivel
             helpUsesRemaining = 3;
-            // Limpiar palabras solucionadas para refrescar el mazo en el nuevo nivel de velocidad
-            solvedWordIds.clear();
+            solvedWordsCurrentLevel.clear();
             
-            updateWordsDeckVisuals();
+            updateWordsDeckState();
             updateHUD();
             
             gameLoopActive = true;
             spawnNewBlock();
+        }
+
+        function updateWordsDeckState() {
+            // Eliminar efectos de ayuda SOS previos
+            document.querySelectorAll(".help-active-btn").forEach(btn => btn.classList.remove("help-active-btn"));
         }
 
         function quitGame() {
@@ -953,8 +1045,10 @@
             cancelAnimationFrame(animationFrameId);
             playSound(isVictory ? "success" : "gameover");
 
+            const blockEl = document.getElementById("falling-block");
+            blockEl.style.display = "none";
+
             updateKingVisualState();
-            
             if (isVictory) {
                 document.getElementById("king-face-happy").classList.remove("hidden");
                 document.getElementById("king-face-defeat").classList.add("hidden");
@@ -973,13 +1067,13 @@
             if (isVictory) {
                 emojiEl.innerText = "👑🐕🎖️";
                 titleEl.innerText = "¡VICTORIA ABSOLUTA!";
-                titleEl.className = "text-4xl font-bold font-fun text-emerald-400 mb-2 animate-bounce";
-                msgEl.innerHTML = `<strong class="text-xl text-yellow-300 block mb-3">WOW, ERES LO MÁXIMO.</strong> El Rey Theo te condecora por haber llegado al TOP de los Phrasal Verbs que comienzan con B. ¡Sigue practicando!`;
+                titleEl.className = "text-3xl font-bold font-fun text-emerald-400 mb-2 animate-bounce";
+                msgEl.innerHTML = `<strong class="text-base text-yellow-300 block mb-2">WOW, ERES LO MÁXIMO.</strong> El Rey Theo te condecora por haber llegado al TOP de los Phrasal Verbs que comienzan con B. ¡Sigue practicando!`;
             } else {
                 emojiEl.innerText = "😢🐕";
                 titleEl.innerText = "¡EL REY FUE ATRAPADO!";
-                titleEl.className = "text-4xl font-bold font-fun text-rose-500 mb-2";
-                msgEl.innerText = "Los bloques llegaron a la parte superior de la torre. ¡Sigue practicando para rescatar a tu fiel amigo Yorkshire!";
+                titleEl.className = "text-3xl font-bold font-fun text-rose-500 mb-2";
+                msgEl.innerText = "El torreón se llenó de bloques. ¡Sigue practicando la sección B para rescatar a tu fiel amigo Yorkshire!";
             }
 
             document.getElementById("gameover-screen").classList.remove("hidden");
@@ -989,9 +1083,24 @@
             restartGameEngine();
         }
 
-        function resetGame() {
-            if (confirm("¿Seguro que deseas reiniciar el juego actual? Se perderá tu puntuación y tu nivel actual.")) {
+        // Confirmaciones personalizadas estilo iOS
+        let confirmPromiseResolver = null;
+        function triggerConfirmReset() {
+            if (gameLoopActive) {
+                cancelAnimationFrame(animationFrameId);
+                gameLoopActive = false;
+            }
+            document.getElementById("confirm-modal").classList.remove("hidden");
+        }
+
+        function confirmResetAct(isConfirmed) {
+            document.getElementById("confirm-modal").classList.add("hidden");
+            if (isConfirmed) {
                 restartGameEngine();
+            } else {
+                gameLoopActive = true;
+                lastTimestamp = performance.now();
+                animationFrameId = requestAnimationFrame(updateGamePhysics);
             }
         }
     </script>
